@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentCVSTS.Repositories",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentCVSTS.Services", "PaymentCVSTS.Services\PaymentCVSTS.Services.csproj", "{DAADC9B9-ADC0-441F-8E43-A18D45E3ECB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentCVSTS.RazorWebApp", "PaymentCVSTS.RazorWebApp\PaymentCVSTS.RazorWebApp.csproj", "{DED9C5EC-C5D5-45EC-8921-EE69E69762A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DAADC9B9-ADC0-441F-8E43-A18D45E3ECB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAADC9B9-ADC0-441F-8E43-A18D45E3ECB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAADC9B9-ADC0-441F-8E43-A18D45E3ECB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DED9C5EC-C5D5-45EC-8921-EE69E69762A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DED9C5EC-C5D5-45EC-8921-EE69E69762A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DED9C5EC-C5D5-45EC-8921-EE69E69762A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DED9C5EC-C5D5-45EC-8921-EE69E69762A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

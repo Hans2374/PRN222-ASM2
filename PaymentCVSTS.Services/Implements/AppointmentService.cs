@@ -1,23 +1,21 @@
 ﻿using PaymentCVSTS.Repositories;
 using PaymentCVSTS.Repositories.Models;
+using PaymentCVSTS.Services.Interfaces;
 
-namespace PaymentCVSTS.Services
+namespace PaymentCVSTS.Services.Implements
 {
-    public class AppointmentService
+    public class AppointmentService : IAppointmentService
     {
         private readonly AppointmentRepository _appointmentRepository;
 
         public AppointmentService()
         {
-
-            _appointmentRepository = new();
+            _appointmentRepository = new AppointmentRepository();
         }
-
 
         public async Task<List<Appointment>> GetAllAsync()
         {
             return await _appointmentRepository.GetAllAsync();
-
         }
     }
 }

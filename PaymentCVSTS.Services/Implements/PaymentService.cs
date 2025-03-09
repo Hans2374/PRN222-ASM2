@@ -1,29 +1,15 @@
 ﻿using PaymentCVSTS.Repositories;
 using PaymentCVSTS.Repositories.Models;
+using PaymentCVSTS.Services.Interfaces;
 
-namespace PaymentCVSTS.Services
+namespace PaymentCVSTS.Services.Implements
 {
-    public interface IPayment
+    public class PaymentService : IPaymentService
     {
-
-        Task<List<Payment>> GetAll();
-
-        Task<Payment> GetById(int id);
-        Task<List<Payment>> Search(DateOnly? date, string? status, int? childId);
-        Task<int> Create(Payment payment);
-
-        Task<int> Update(Payment payment);
-        Task<bool> Delete(int id);
-
-    }
-    public class PaymentService : IPayment
-    {
-
         private readonly PaymentRepository _paymentRespository;
 
         public PaymentService()
         {
-
             _paymentRespository = new PaymentRepository();
         }
 
@@ -46,7 +32,6 @@ namespace PaymentCVSTS.Services
         {
             return await _paymentRespository.GetAll();
         }
-
 
         public async Task<Payment> GetById(int id)
         {
