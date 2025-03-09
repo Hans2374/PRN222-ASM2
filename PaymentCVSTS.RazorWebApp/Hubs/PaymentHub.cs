@@ -34,6 +34,29 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
             }
         }
 
+        public async Task UpdatePayment(string paymentJsonString)
+        {
+            try
+            {
+                var payment = JsonConvert.DeserializeObject<Payment>(paymentJsonString);
+
+                Console.WriteLine("🔄 Updating payment...");
+
+                // Update payment in database
+                await _paymentService.Update(payment);
+                Console.WriteLine("✅ Payment updated in database!");
+
+                // Notify all clients about the update
+                await Clients.All.SendAsync("Receive_UpdatePayment", payment);
+                Console.WriteLine("✅ Update notification sent to clients!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("❌ Error in UpdatePayment: " + ex.ToString());
+                throw;
+            }
+        }
+
         public async Task DeletePayment(int id)
         {
             try

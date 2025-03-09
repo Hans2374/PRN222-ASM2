@@ -173,10 +173,7 @@
                     });
             });
 
-            // Add validation on input change
-            $("#Payment_Amount, #Payment_PaymentMethod, #Payment_PaymentDate, #Payment_AppointmentId").on("change", function() {
-                validateForm();
-            });
+            // Removed the change event listeners that triggered validation on input changes
         });
     </script>
 }

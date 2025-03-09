@@ -84,37 +84,47 @@
             connection.on("Receive_Payment", function (payment) {
                 console.log("📩 Received payment data:", payment);
 
-            var trPayment = `
-                <tr id="${payment.paymentId}">
-                    <td>${Math.floor(payment.amount)}</td>
-                    <td>${payment.paymentStatus}</td>
-                    <td>${payment.paymentMethod}</td>
-                    <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
-                    <td>
-                        <a href="./Details?id=${payment.paymentId}">Details</a> |
-                        <a href="./Edit?id=${payment.paymentId}">Edit</a> |
-                        <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
-                    </td>
-                </tr>`;
-            $("#idPayment").append(trPayment);
+                var trPayment = `
+                    <tr id="${payment.paymentId}">
+                        <td>${Math.floor(payment.amount)}</td>
+                        <td>${payment.paymentStatus}</td>
+                        <td>${payment.paymentMethod}</td>
+                        <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
+                        <td>
+                            <a href="./Details?id=${payment.paymentId}">Details</a> |
+                            <a href="./Edit?id=${payment.paymentId}">Edit</a> |
+                            <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
+                        </td>
+                    </tr>`;
+                $("#idPayment").append(trPayment);
+            });
+
+            // Receive update notification from hub
+            connection.on("Receive_UpdatePayment", function (payment) {
+                console.log("🔄 Received updated payment data:", payment);
+
+                // Find the payment row by ID
+                var existingRow = $(`#${payment.paymentId}`);
+                if (existingRow.length) {
+                    // Replace the row contents with updated data
+                    existingRow.html(`
+                        <td>${Math.floor(payment.amount)}</td>
+                        <td>${payment.paymentStatus}</td>
+                        <td>${payment.paymentMethod}</td>
+                        <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
+                        <td>
+                            <a href="./Details?id=${payment.paymentId}">Details</a> |
+                            <a href="./Edit?id=${payment.paymentId}">Edit</a> |
+                            <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
+                        </td>
+                    `);
+                }
             });
 
             // Receive delete notification from hub
             connection.on("Receive_DeletePayment", function (id) {
                 console.log("🗑️ Received delete notification for payment ID:", id);
                 $(`#${id}`).remove();
-            });
-
-            // Add debug panel toggle functionality
-            $("#toggleDebug").click(function() {
-                var panel = $("#debugPanel");
-                if (panel.is(":visible")) {
-                    panel.hide();
-                    $(this).text("Show");
-                } else {
-                    panel.show();
-                    $(this).text("Hide");
-                }
             });
 
             // Start connection
@@ -124,10 +134,12 @@
                 // Handle delete button clicks
                 $(document).on("click", ".delete-payment", function() {
                     var paymentId = $(this).data("id");
-                    connection.invoke("DeletePayment", paymentId)
-                        .catch(function (err) {
-                            console.error(err);
-                        });
+                    if(confirm("Are you sure you want to delete this payment?")) {
+                        connection.invoke("DeletePayment", paymentId)
+                            .catch(function (err) {
+                                console.error(err);
+                            });
+                    }
                 });
             }).catch(function (err) {
                 console.error("SignalR connection error:", err.toString());
