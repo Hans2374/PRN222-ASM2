@@ -1,0 +1,137 @@
+﻿@page
+@model PaymentCVSTS.RazorWebApp.Pages.Payments.IndexModel
+
+@{
+    ViewData["Title"] = "Payments";
+}
+
+<h1>Payments</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Index" method="get" class="d-flex align-items-center mb-3">
+            <div class="col-md-3">
+                <div class="form-group me-3">
+                    <label class="control-label">Payment Date</label>
+                    <input type="date" name="PaymentDate" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group me-3">
+                    <label class="control-label">Payment Status</label>
+                    <select name="PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList">
+                        <option value="">-- Select Status --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group me-3">
+                    <label class="control-label">Child ID</label>
+                    <input type="number" name="ChildId" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-3 mt-4 me-3">
+                <input type="submit" class="btn btn-success" value="Search" />
+                <a asp-page="Create" class="btn btn-primary">Create New Payment</a>
+            </div>
+        </form>
+    </div>
+</div>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Method</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="idPayment">
+        @foreach (var item in Model.Payments)
+        {
+            <tr id="@item.PaymentId">
+                <td>
+                    @((int)item.Amount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PaymentStatus)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PaymentMethod)
+                </td>
+                <td>
+                    @(item.PaymentDate.ToString("yyyy-MM-dd"))
+                </td>
+                <td>
+                    <a asp-page="./Details" asp-route-id="@item.PaymentId">Details</a> |
+                    <a asp-page="./Edit" asp-route-id="@item.PaymentId">Edit</a> |
+                    <button class="btn btn-danger btn-sm delete-payment" data-id="@item.PaymentId">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            console.log("Initializing SignalR connection");
+            var connection = new signalR.HubConnectionBuilder().withUrl("/paymentHub").build();
+
+            // Receive payment from hub
+            connection.on("Receive_Payment", function (payment) {
+                console.log("📩 Received payment data:", payment);
+
+            var trPayment = `
+                <tr id="${payment.paymentId}">
+                    <td>${Math.floor(payment.amount)}</td>
+                    <td>${payment.paymentStatus}</td>
+                    <td>${payment.paymentMethod}</td>
+                    <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
+                    <td>
+                        <a href="./Details?id=${payment.paymentId}">Details</a> |
+                        <a href="./Edit?id=${payment.paymentId}">Edit</a> |
+                        <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
+                    </td>
+                </tr>`;
+            $("#idPayment").append(trPayment);
+            });
+
+            // Receive delete notification from hub
+            connection.on("Receive_DeletePayment", function (id) {
+                console.log("🗑️ Received delete notification for payment ID:", id);
+                $(`#${id}`).remove();
+            });
+
+            // Add debug panel toggle functionality
+            $("#toggleDebug").click(function() {
+                var panel = $("#debugPanel");
+                if (panel.is(":visible")) {
+                    panel.hide();
+                    $(this).text("Show");
+                } else {
+                    panel.show();
+                    $(this).text("Hide");
+                }
+            });
+
+            // Start connection
+            connection.start().then(function () {
+                console.log("SignalR connected");
+
+                // Handle delete button clicks
+                $(document).on("click", ".delete-payment", function() {
+                    var paymentId = $(this).data("id");
+                    connection.invoke("DeletePayment", paymentId)
+                        .catch(function (err) {
+                            console.error(err);
+                        });
+                });
+            }).catch(function (err) {
+                console.error("SignalR connection error:", err.toString());
+            });
+        });
+    </script>
+}

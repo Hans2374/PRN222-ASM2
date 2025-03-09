@@ -1,0 +1,95 @@
+﻿@page
+@model PaymentCVSTS.RazorWebApp.Pages.Payments.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete Payment";
+}
+
+<h1>Delete Payment</h1>
+
+<h3>Are you sure you want to delete this payment?</h3>
+<div>
+    <h4>Payment Details</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentId)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentId)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.Amount)
+        </dt>
+        <dd class="col-sm-9">
+            @((int)Model.Payment.Amount)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentStatus)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentStatus)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentMethod)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentMethod)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentDate)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentDate)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.AppointmentId)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.AppointmentId)
+        </dd>
+    </dl>
+
+    <form id="deleteForm">
+        <input type="hidden" id="PaymentId" value="@Model.Payment.PaymentId" />
+        <input type="button" value="Delete" id="deleteButton" class="btn btn-danger" /> |
+        <a asp-page="./Index">Back to List</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize SignalR connection
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/paymentHub")
+                .build();
+
+            // Start connection
+            connection.start().then(function () {
+                console.log("SignalR connected");
+                $("#deleteButton").prop("disabled", false);
+            }).catch(function (err) {
+                console.error("SignalR connection error:", err.toString());
+            });
+
+            // Handle delete button click
+            $("#deleteButton").click(function () {
+                if (confirm("Are you sure you want to delete this payment?")) {
+                    var paymentId = parseInt($("#PaymentId").val());
+
+                    connection.invoke("DeletePayment", paymentId)
+                        .then(function () {
+                            window.location.href = "./Index";
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                            alert("Error deleting payment: " + err.toString());
+                        });
+                }
+            });
+        });
+    </script>
+}

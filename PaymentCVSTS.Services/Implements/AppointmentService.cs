@@ -17,5 +17,10 @@ namespace PaymentCVSTS.Services.Implements
         {
             return await _appointmentRepository.GetAllAsync();
         }
+
+        public async Task<Appointment> GetById(int id)
+        {
+            return await _appointmentRepository.GetByIdAsync(id);
+        }
     }
 }

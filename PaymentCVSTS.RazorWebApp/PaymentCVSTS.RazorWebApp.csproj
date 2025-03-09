@@ -19,8 +19,4 @@
     <ProjectReference Include="..\PaymentCVSTS.Services\PaymentCVSTS.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Hubs\" />
-  </ItemGroup>
-
 </Project>

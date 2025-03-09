@@ -1,0 +1,77 @@
+﻿@page
+@model PaymentCVSTS.RazorWebApp.Pages.Payments.DetailsModel
+
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<h1>Payment Details</h1>
+
+<div>
+    <h4>Payment</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentId)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentId)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.Amount)
+        </dt>
+        <dd class="col-sm-9">
+            @((int)Model.Payment.Amount)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentStatus)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentStatus)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentMethod)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentMethod)
+        </dd>
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Payment.PaymentDate)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.PaymentDate)
+        </dd>
+        <dt class="col-sm-3">
+            Appointment ID
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Payment.AppointmentId)
+        </dd>
+
+        @if (Model.Payment.Appointment != null)
+        {
+            <dt class="col-sm-3">
+                Appointment Status
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Payment.Appointment.Status)
+            </dd>
+            <dt class="col-sm-3">
+                Total Cost
+            </dt>
+            <dd class="col-sm-9">
+                @((int)Model.Payment.Appointment.TotalCost)
+            </dd>
+            <dt class="col-sm-3">
+                Booking Date
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Payment.Appointment.BookingDate)
+            </dd>
+        }
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.Payment.PaymentId">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>

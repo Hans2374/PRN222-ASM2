@@ -1,10 +1,22 @@
 ﻿@page
-@model IndexModel
+@model PaymentCVSTS.RazorWebApp.Pages.IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to Payment CVSTS System</h1>
+    <p>Manage your vaccine payments seamlessly with our integrated platform.</p>
+
+    <div class="row mt-5 justify-content-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payments</h5>
+                    <p class="card-text">Manage payment transactions for vaccine appointments.</p>
+                    <a href="/Payments/Index" class="btn btn-primary">Go to Payments</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -8,7 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(e =>
+{
+    e.EnableDetailedErrors = true;
+    e.MaximumReceiveMessageSize = 102400000;
+});
 
 // Register service interfaces and implementations
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -21,7 +25,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/Forbidden";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
