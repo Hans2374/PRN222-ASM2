@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace PaymentCVSTS.RazorWebApp.Pages
 {
-    [Authorize(Roles = "3,2,1")]
+    [Authorize] // Changed from [Authorize(Roles = "3,2,1")] to allow any authenticated user
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;

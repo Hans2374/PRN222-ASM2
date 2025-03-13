@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize(Roles = "3,2")]
+    [Authorize] // Changed from [Authorize(Roles = "3,2")] to allow all authenticated users
     public class EditModel : PageModel
     {
         private readonly IPaymentService _paymentService;

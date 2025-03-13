@@ -15,17 +15,23 @@
             <div id="validationSummary"></div>
             <div class="form-group">
                 <label asp-for="Payment.Amount" class="control-label"></label>
-                <input asp-for="Payment.Amount" class="form-control" type="number" step="0.01" />
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input asp-for="Payment.Amount" class="form-control" type="number" />
+                </div>
                 <span asp-validation-for="Payment.Amount" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mt-3">
                 <label asp-for="Payment.PaymentStatus" class="control-label"></label>
-                <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList"></select>
+                <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList">
+                    <option value="">-- Select Payment Status --</option>
+                </select>
                 <span asp-validation-for="Payment.PaymentStatus" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mt-3">
                 <label asp-for="Payment.PaymentMethod" class="control-label"></label>
                 <select asp-for="Payment.PaymentMethod" class="form-control">
+                    <option value="">-- Select Payment Method --</option>
                     <option value="Credit Card">Credit Card</option>
                     <option value="Debit Card">Debit Card</option>
                     <option value="PayPal">PayPal</option>
@@ -34,14 +40,16 @@
                 </select>
                 <span asp-validation-for="Payment.PaymentMethod" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mt-3">
                 <label asp-for="Payment.PaymentDate" class="control-label"></label>
                 <input asp-for="Payment.PaymentDate" type="date" class="form-control" />
                 <span asp-validation-for="Payment.PaymentDate" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mt-3">
                 <label asp-for="Payment.AppointmentId" class="control-label"></label>
-                <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId"></select>
+                <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId">
+                    <option value="">-- Select Appointment --</option>
+                </select>
                 <span asp-validation-for="Payment.AppointmentId" class="text-danger"></span>
             </div>
             <div class="form-group mt-3">
@@ -90,6 +98,16 @@
                     $("#Payment_Amount").addClass("is-invalid");
                 } else {
                     $("#Payment_Amount").removeClass("is-invalid");
+                }
+
+                // Validate Payment Status
+                var paymentStatus = $("#Payment_PaymentStatus").val();
+                if (!paymentStatus) {
+                    isValid = false;
+                    errorMessages.push("Payment Status is required");
+                    $("#Payment_PaymentStatus").addClass("is-invalid");
+                } else {
+                    $("#Payment_PaymentStatus").removeClass("is-invalid");
                 }
 
                 // Validate Payment Method
@@ -172,8 +190,6 @@
                         $("#sendButton").prop("disabled", false).html('Create Payment');
                     });
             });
-
-            // Removed the change event listeners that triggered validation on input changes
         });
     </script>
 }
