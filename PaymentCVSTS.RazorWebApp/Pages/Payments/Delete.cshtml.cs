@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// Modify your DeleteModel class in Payments/Delete.cshtml.cs:
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.SignalR;
@@ -9,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize] // Changed from [Authorize(Roles = "2")] to allow all authenticated users
+    [Authorize(Roles = "2")]
     public class DeleteModel : PageModel
     {
         private readonly IPaymentService _paymentService;
@@ -23,6 +25,19 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
         [BindProperty]
         public Payment Payment { get; set; } = default!;
+
+        // Add these properties to store the filter state
+        [BindProperty(SupportsGet = true)]
+        public string? PaymentDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? PaymentStatus { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? ChildId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -47,7 +62,14 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
                 await _hubContext.Clients.All.SendAsync("Receive_DeletePayment", id);
             }
 
-            return RedirectToPage("./Index");
+            // Pass along the filter parameters
+            return RedirectToPage("./Index", new
+            {
+                PaymentDate = this.PaymentDate,
+                PaymentStatus = this.PaymentStatus,
+                ChildId = this.ChildId,
+                CurrentPage = this.CurrentPage
+            });
         }
     }
 }

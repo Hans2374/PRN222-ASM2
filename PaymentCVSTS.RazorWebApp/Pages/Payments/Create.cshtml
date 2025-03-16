@@ -11,27 +11,28 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form id="paymentForm">
-            <div id="validationSummary"></div>
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Add hidden fields to preserve filter state -->
+            <input type="hidden" asp-for="PaymentDate" />
+            <input type="hidden" asp-for="PaymentStatus" />
+            <input type="hidden" asp-for="ChildId" />
+            <input type="hidden" asp-for="CurrentPage" />
+
             <div class="form-group">
                 <label asp-for="Payment.Amount" class="control-label"></label>
-                <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input asp-for="Payment.Amount" class="form-control" type="number" />
-                </div>
+                <input asp-for="Payment.Amount" class="form-control" type="number" step="0.01" />
                 <span asp-validation-for="Payment.Amount" class="text-danger"></span>
             </div>
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentStatus" class="control-label"></label>
-                <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList">
-                    <option value="">-- Select Payment Status --</option>
-                </select>
+                <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList"></select>
                 <span asp-validation-for="Payment.PaymentStatus" class="text-danger"></span>
             </div>
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentMethod" class="control-label"></label>
                 <select asp-for="Payment.PaymentMethod" class="form-control">
-                    <option value="">-- Select Payment Method --</option>
                     <option value="Credit Card">Credit Card</option>
                     <option value="Debit Card">Debit Card</option>
                     <option value="PayPal">PayPal</option>
@@ -40,156 +41,39 @@
                 </select>
                 <span asp-validation-for="Payment.PaymentMethod" class="text-danger"></span>
             </div>
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentDate" class="control-label"></label>
                 <input asp-for="Payment.PaymentDate" type="date" class="form-control" />
                 <span asp-validation-for="Payment.PaymentDate" class="text-danger"></span>
             </div>
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.AppointmentId" class="control-label"></label>
-                <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId">
-                    <option value="">-- Select Appointment --</option>
-                </select>
+                <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId"></select>
                 <span asp-validation-for="Payment.AppointmentId" class="text-danger"></span>
             </div>
             <div class="form-group mt-3">
-                <input type="button" value="Create Payment" id="sendButton" class="btn btn-primary" />
-                <a href="./Index" class="btn btn-secondary">Cancel</a>
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-page="Index"
+                   asp-route-PaymentDate="@Model.PaymentDate"
+                   asp-route-PaymentStatus="@Model.PaymentStatus"
+                   asp-route-ChildId="@Model.ChildId"
+                   asp-route-currentPage="@Model.CurrentPage"
+                   class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-page="Index">Back to List</a>
+    <a asp-page="Index"
+       asp-route-PaymentDate="@Model.PaymentDate"
+       asp-route-PaymentStatus="@Model.PaymentStatus"
+       asp-route-ChildId="@Model.ChildId"
+       asp-route-currentPage="@Model.CurrentPage">Back to List</a>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/signalr/dist/browser/signalr.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Initialize SignalR connection
-            var connection = new signalR.HubConnectionBuilder()
-                .withUrl("/paymentHub")
-                .build();
-
-            // Start connection
-            connection.start().then(function () {
-                console.log("SignalR connected");
-                $("#sendButton").prop("disabled", false);
-            }).catch(function (err) {
-                console.error("SignalR connection error:", err.toString());
-            });
-
-            // Form validation
-            function validateForm() {
-                var isValid = true;
-                var errorMessages = [];
-
-                // Validate Amount
-                var amount = $("#Payment_Amount").val();
-                if (!amount || amount <= 0) {
-                    isValid = false;
-                    errorMessages.push("Amount is required and must be greater than 0");
-                    $("#Payment_Amount").addClass("is-invalid");
-                } else {
-                    $("#Payment_Amount").removeClass("is-invalid");
-                }
-
-                // Validate Payment Status
-                var paymentStatus = $("#Payment_PaymentStatus").val();
-                if (!paymentStatus) {
-                    isValid = false;
-                    errorMessages.push("Payment Status is required");
-                    $("#Payment_PaymentStatus").addClass("is-invalid");
-                } else {
-                    $("#Payment_PaymentStatus").removeClass("is-invalid");
-                }
-
-                // Validate Payment Method
-                var paymentMethod = $("#Payment_PaymentMethod").val();
-                if (!paymentMethod) {
-                    isValid = false;
-                    errorMessages.push("Payment Method is required");
-                    $("#Payment_PaymentMethod").addClass("is-invalid");
-                } else {
-                    $("#Payment_PaymentMethod").removeClass("is-invalid");
-                }
-
-                // Validate Payment Date
-                var paymentDate = $("#Payment_PaymentDate").val();
-                if (!paymentDate) {
-                    isValid = false;
-                    errorMessages.push("Payment Date is required");
-                    $("#Payment_PaymentDate").addClass("is-invalid");
-                } else {
-                    $("#Payment_PaymentDate").removeClass("is-invalid");
-                }
-
-                // Validate Appointment ID
-                var appointmentId = $("#Payment_AppointmentId").val();
-                if (!appointmentId) {
-                    isValid = false;
-                    errorMessages.push("Appointment is required");
-                    $("#Payment_AppointmentId").addClass("is-invalid");
-                } else {
-                    $("#Payment_AppointmentId").removeClass("is-invalid");
-                }
-
-                // Display validation summary
-                if (!isValid) {
-                    var errorHtml = '<div class="alert alert-danger"><ul>';
-                    errorMessages.forEach(function(msg) {
-                        errorHtml += '<li>' + msg + '</li>';
-                    });
-                    errorHtml += '</ul></div>';
-                    $("#validationSummary").html(errorHtml);
-                } else {
-                    $("#validationSummary").html('');
-                }
-
-                return isValid;
-            }
-
-            // Handle send button click
-            $("#sendButton").click(function () {
-                if (!validateForm()) {
-                    return false;
-                }
-
-                // Get the appointment ID
-                var appointmentId = parseInt($("#Payment_AppointmentId").val());
-
-                var payment = {
-                    amount: parseFloat($("#Payment_Amount").val()),
-                    paymentStatus: $("#Payment_PaymentStatus").val(),
-                    paymentMethod: $("#Payment_PaymentMethod").val(),
-                    paymentDate: $("#Payment_PaymentDate").val(),
-                    appointmentId: appointmentId
-                };
-
-                // Show loading indicator
-                $("#sendButton").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...');
-
-                // Log the outgoing payment data
-                console.log("Sending payment:", payment);
-
-                // Convert to JSON and send via SignalR
-                var paymentJson = JSON.stringify(payment);
-                connection.invoke("SendPayment", paymentJson)
-                    .then(function () {
-                        window.location.href = "Index";
-                    })
-                    .catch(function (err) {
-                        console.error(err);
-                        alert("Error creating payment: " + err.toString());
-                        $("#sendButton").prop("disabled", false).html('Create Payment');
-                    });
-            });
-        });
-    </script>
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Modify your CreateModel class in Payments/Create.cshtml.cs:
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PaymentCVSTS.Repositories.Models;
@@ -12,7 +14,7 @@ using System.Linq;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize] // Changed from [Authorize(Roles = "3,2")] to allow all authenticated users
+    [Authorize(Roles = "3,2")]
     public class CreateModel : PageModel
     {
         private readonly IPaymentService _paymentService;
@@ -23,6 +25,19 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
             _paymentService = paymentService;
             _appointmentService = appointmentService;
         }
+
+        // Add these properties to store the filter state
+        [BindProperty(SupportsGet = true)]
+        public string? PaymentDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? PaymentStatus { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? ChildId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
 
         public async Task<IActionResult> OnGet()
         {
@@ -55,7 +70,14 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
             await _paymentService.Create(Payment);
 
-            return RedirectToPage("./Index");
+            // Pass along the filter parameters
+            return RedirectToPage("./Index", new
+            {
+                PaymentDate = this.PaymentDate,
+                PaymentStatus = this.PaymentStatus,
+                ChildId = this.ChildId,
+                CurrentPage = this.CurrentPage
+            });
         }
     }
 }

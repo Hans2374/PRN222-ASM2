@@ -21,7 +21,7 @@
             @Html.DisplayNameFor(model => model.Payment.Amount)
         </dt>
         <dd class="col-sm-9">
-            $@((int)Model.Payment.Amount)
+            @((int)Model.Payment.Amount)
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentStatus)
@@ -60,7 +60,7 @@
                 Total Cost
             </dt>
             <dd class="col-sm-9">
-                $@((int)Model.Payment.Appointment.TotalCost)
+                @((int)Model.Payment.Appointment.TotalCost)
             </dd>
             <dt class="col-sm-3">
                 Booking Date
@@ -72,6 +72,14 @@
     </dl>
 </div>
 <div>
-    <a asp-page="./Edit" asp-route-id="@Model.Payment.PaymentId" class="btn btn-primary">Edit</a>
-    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    <a asp-page="./Edit" asp-route-id="@Model.Payment.PaymentId"
+       asp-route-PaymentDate="@Model.PaymentDate"
+       asp-route-PaymentStatus="@Model.PaymentStatus"
+       asp-route-ChildId="@Model.ChildId"
+       asp-route-currentPage="@Model.CurrentPage">Edit</a> |
+    <a asp-page="./Index"
+       asp-route-PaymentDate="@Model.PaymentDate"
+       asp-route-PaymentStatus="@Model.PaymentStatus"
+       asp-route-ChildId="@Model.ChildId"
+       asp-route-currentPage="@Model.CurrentPage">Back to List</a>
 </div>

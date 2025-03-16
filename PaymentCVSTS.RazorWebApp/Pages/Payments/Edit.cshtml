@@ -11,26 +11,29 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form id="editForm">
-            <div id="validationSummary" class="text-danger"></div>
+        <form id="editForm" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Payment.PaymentId" id="Payment_PaymentId" />
+
+            <!-- Add hidden fields to preserve filter state -->
+            <input type="hidden" asp-for="PaymentDate" />
+            <input type="hidden" asp-for="PaymentStatus" />
+            <input type="hidden" asp-for="ChildId" />
+            <input type="hidden" asp-for="CurrentPage" />
 
             <div class="form-group">
                 <label asp-for="Payment.Amount" class="control-label"></label>
-                <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input asp-for="Payment.Amount" class="form-control" type="number" id="Payment_Amount" />
-                </div>
+                <input asp-for="Payment.Amount" class="form-control" type="number" step="0.01" id="Payment_Amount" />
                 <span asp-validation-for="Payment.Amount" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentStatus" class="control-label"></label>
                 <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList" id="Payment_PaymentStatus"></select>
                 <span asp-validation-for="Payment.PaymentStatus" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentMethod" class="control-label"></label>
                 <select asp-for="Payment.PaymentMethod" class="form-control" id="Payment_PaymentMethod">
                     <option value="Credit Card">Credit Card</option>
@@ -42,441 +45,41 @@
                 <span asp-validation-for="Payment.PaymentMethod" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.PaymentDate" class="control-label"></label>
                 <input asp-for="Payment.PaymentDate" type="date" class="form-control" id="Payment_PaymentDate" />
                 <span asp-validation-for="Payment.PaymentDate" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
+            <div class="form-group">
                 <label asp-for="Payment.AppointmentId" class="control-label"></label>
                 <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId" id="Payment_AppointmentId"></select>
                 <span asp-validation-for="Payment.AppointmentId" class="text-danger"></span>
             </div>
 
             <div class="form-group mt-3">
-                <button type="button" id="updateButton" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save Changes
-                </button>
-                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+                <input type="submit" value="Save Changes" class="btn btn-primary" />
+                <a asp-page="./Index"
+                   asp-route-PaymentDate="@Model.PaymentDate"
+                   asp-route-PaymentStatus="@Model.PaymentStatus"
+                   asp-route-ChildId="@Model.ChildId"
+                   asp-route-currentPage="@Model.CurrentPage"
+                   class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <i class="bi bi-broadcast"></i> Real-time Collaboration
-            </div>
-            <div class="card-body">
-                <div id="collaborationStatus" class="mb-3">
-                    <span class="badge bg-success">
-                        <i class="bi bi-wifi"></i> Connected to real-time updates
-                    </span>
-                </div>
-
-                <div id="activeUsers" class="mb-3">
-                    <strong>Active users editing this payment:</strong>
-                    <ul id="usersList" class="list-group mt-2">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            You
-                            <span class="badge bg-primary rounded-pill">Current</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div id="activityLog">
-                    <strong>Activity Log:</strong>
-                    <div id="activityListContainer" class="mt-2 border rounded p-2" style="max-height: 200px; overflow-y: auto;">
-                        <ul id="activityList" class="list-unstyled mb-0">
-                            <li><small class="text-muted">You opened this payment for editing</small></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Toast Container -->
-<div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999"></div>
-
-<!-- Unsaved Changes Modal -->
-<div class="modal fade" id="unsavedChangesModal" tabindex="-1" aria-labelledby="unsavedChangesModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title" id="unsavedChangesModalLabel">Unsaved Changes</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <i class="bi bi-exclamation-triangle-fill text-warning fs-1 d-block text-center mb-3"></i>
-                <p>You have unsaved changes. Do you want to save them before leaving?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="discardChanges">Discard Changes</button>
-                <button type="button" class="btn btn-primary" id="saveChanges">Save Changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Another User Editing Modal -->
-<div class="modal fade" id="concurrentEditModal" tabindex="-1" aria-labelledby="concurrentEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="concurrentEditModalLabel">Concurrent Editing</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <i class="bi bi-people-fill text-info fs-1 d-block text-center mb-3"></i>
-                <p>Another user (<span id="otherEditorName">Someone</span>) is currently editing this payment.</p>
-                <p>You can still make changes, but be aware that you may be overwriting their work.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK, I understand</button>
-            </div>
-        </div>
-    </div>
+<div>
+    <a asp-page="./Index"
+       asp-route-PaymentDate="@Model.PaymentDate"
+       asp-route-PaymentStatus="@Model.PaymentStatus"
+       asp-route-ChildId="@Model.ChildId"
+       asp-route-currentPage="@Model.CurrentPage">Back to List</a>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/signalr/dist/browser/signalr.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Initialize SignalR connection
-            var connection = new signalR.HubConnectionBuilder()
-                .withUrl("/paymentHub")
-                .withAutomaticReconnect()
-                .build();
-
-            const paymentId = parseInt($("#Payment_PaymentId").val());
-            const userName = "@User.Identity.Name" || "Anonymous";
-            const editSessionId = Date.now().toString() + "-" + Math.random().toString(36).substr(2, 9);
-            let formChanged = false;
-            let otherEditorsCount = 0;
-
-            // Function to show toast messages
-            function showToast(message, type = "success") {
-                const bgClass = type === "success" ? "bg-success" : (type === "warning" ? "bg-warning text-dark" : "bg-danger");
-                const toastId = "toast_" + Date.now();
-
-                const toast = `
-                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="d-flex">
-                            <div class="toast-body">
-                                ${message}
-                            </div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                    </div>
-                `;
-
-                $("#toastContainer").append(toast);
-
-                const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-                    delay: 3000
-                });
-                toastElement.show();
-
-                // Remove toast element after it's hidden
-                $(`#${toastId}`).on('hidden.bs.toast', function () {
-                    $(this).remove();
-                });
-            }
-
-            // Add activity log entry
-            function addActivityLog(message) {
-                const timestamp = new Date().toLocaleTimeString();
-                $("#activityList").append(`<li><small class="text-muted">${timestamp}: ${message}</small></li>`);
-
-                // Scroll to bottom of activity log
-                const container = document.getElementById('activityListContainer');
-                container.scrollTop = container.scrollHeight;
-            }
-
-            // Track changes to form fields
-            $("#editForm input, #editForm select").on("change", function() {
-                formChanged = true;
-
-                // Broadcast field change to other users
-                const fieldId = $(this).attr("id");
-                const fieldValue = $(this).val();
-
-                if (connection.state === signalR.HubConnectionState.Connected) {
-                    connection.invoke("BroadcastFieldChange", paymentId, editSessionId, userName, fieldId, fieldValue)
-                        .catch(function(err) {
-                            console.error("Error broadcasting field change:", err);
-                        });
-                }
-            });
-
-            // Check for unsaved changes before leaving page
-            window.addEventListener("beforeunload", function(e) {
-                if (formChanged) {
-                    // Standard way of showing confirmation dialog
-                    e.preventDefault();
-                    e.returnValue = "";
-
-                    // Note: modern browsers will show their own generic message
-                    // regardless of what we set here
-                    return "You have unsaved changes. Are you sure you want to leave?";
-                }
-            });
-
-            // Inform other users when someone starts editing
-            async function notifyEditingStarted() {
-                if (connection.state === signalR.HubConnectionState.Connected) {
-                    try {
-                        await connection.invoke("StartEditingPayment", paymentId, editSessionId, userName);
-                        addActivityLog("You joined the editing session");
-                    } catch (err) {
-                        console.error("Error notifying editing started:", err);
-                        showToast("Could not connect to collaboration service", "error");
-                    }
-                }
-            }
-
-            // Notify other users when this user leaves
-            async function notifyEditingEnded() {
-                if (connection.state === signalR.HubConnectionState.Connected) {
-                    try {
-                        await connection.invoke("StopEditingPayment", paymentId, editSessionId, userName);
-                    } catch (err) {
-                        console.error("Error notifying editing ended:", err);
-                    }
-                }
-            }
-
-            // SignalR Hub Events
-
-            // When someone starts editing this payment
-            connection.on("UserStartedEditing", function(id, sessionId, user) {
-                if (id === paymentId && sessionId !== editSessionId) {
-                    addActivityLog(`${user} joined the editing session`);
-
-                    // Add user to the active users list
-                    $("#usersList").append(`
-                        <li class="list-group-item d-flex justify-content-between align-items-center user-${sessionId}">
-                            ${user}
-                            <span class="badge bg-secondary rounded-pill">Editing</span>
-                        </li>
-                    `);
-
-                    otherEditorsCount++;
-
-                    // Show concurrent editing modal if this is the first other editor
-                    if (otherEditorsCount === 1) {
-                        $("#otherEditorName").text(user);
-                        new bootstrap.Modal(document.getElementById('concurrentEditModal')).show();
-                    }
-                }
-            });
-
-            // When someone stops editing this payment
-            connection.on("UserStoppedEditing", function(id, sessionId, user) {
-                if (id === paymentId && sessionId !== editSessionId) {
-                    addActivityLog(`${user} left the editing session`);
-
-                    // Remove user from the active users list
-                    $(`.user-${sessionId}`).remove();
-
-                    if (otherEditorsCount > 0) {
-                        otherEditorsCount--;
-                    }
-                }
-            });
-
-            // When someone changes a form field
-            connection.on("FieldChanged", function(id, sessionId, user, fieldId, fieldValue) {
-                if (id === paymentId && sessionId !== editSessionId) {
-                    // Get the field name for the log
-                    let fieldName = fieldId.replace("Payment_", "");
-                    fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-
-                    addActivityLog(`${user} updated ${fieldName} to "${fieldValue}"`);
-
-                    // Highlight the field that changed for visual feedback
-                    const field = $(`#${fieldId}`);
-
-                    if (field.length > 0) {
-                        field.addClass("border-warning bg-light");
-                        setTimeout(function() {
-                            field.removeClass("border-warning bg-light");
-                        }, 2000);
-                    }
-                }
-            });
-
-            // Form validation
-            function validateForm() {
-                var isValid = true;
-                var errorMessages = [];
-
-                // Validate Amount
-                var amount = $("#Payment_Amount").val();
-                if (!amount || amount <= 0) {
-                    isValid = false;
-                    errorMessages.push("Amount is required and must be greater than 0");
-                    $("#Payment_Amount").addClass("is-invalid");
-                } else {
-                    $("#Payment_Amount").removeClass("is-invalid");
-                }
-
-                // Validate Payment Method
-                var paymentMethod = $("#Payment_PaymentMethod").val();
-                if (!paymentMethod) {
-                    isValid = false;
-                    errorMessages.push("Payment Method is required");
-                    $("#Payment_PaymentMethod").addClass("is-invalid");
-                } else {
-                    $("#Payment_PaymentMethod").removeClass("is-invalid");
-                }
-
-                // Validate Payment Date
-                var paymentDate = $("#Payment_PaymentDate").val();
-                if (!paymentDate) {
-                    isValid = false;
-                    errorMessages.push("Payment Date is required");
-                    $("#Payment_PaymentDate").addClass("is-invalid");
-                } else {
-                    $("#Payment_PaymentDate").removeClass("is-invalid");
-                }
-
-                // Validate Appointment ID
-                var appointmentId = $("#Payment_AppointmentId").val();
-                if (!appointmentId) {
-                    isValid = false;
-                    errorMessages.push("Appointment is required");
-                    $("#Payment_AppointmentId").addClass("is-invalid");
-                } else {
-                    $("#Payment_AppointmentId").removeClass("is-invalid");
-                }
-
-                // Display validation summary
-                if (!isValid) {
-                    var errorHtml = '<div class="alert alert-danger"><ul>';
-                    errorMessages.forEach(function(msg) {
-                        errorHtml += '<li>' + msg + '</li>';
-                    });
-                    errorHtml += '</ul></div>';
-                    $("#validationSummary").html(errorHtml);
-                } else {
-                    $("#validationSummary").html('');
-                }
-
-                return isValid;
-            }
-
-            // Handle update button click
-            $("#updateButton").click(function() {
-                if (!validateForm()) {
-                    return false;
-                }
-
-                var payment = {
-                    paymentId: paymentId,
-                    amount: parseFloat($("#Payment_Amount").val()),
-                    paymentStatus: $("#Payment_PaymentStatus").val(),
-                    paymentMethod: $("#Payment_PaymentMethod").val(),
-                    paymentDate: $("#Payment_PaymentDate").val(),
-                    appointmentId: parseInt($("#Payment_AppointmentId").val())
-                };
-
-                // Show loading indicator
-                $(this).prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
-
-                // Log the payment data
-                console.log("Updating payment:", payment);
-
-                // Convert to JSON and send via SignalR
-                var paymentJson = JSON.stringify(payment);
-                connection.invoke("UpdatePayment", paymentJson)
-                    .then(function() {
-                        // Form is now saved
-                        formChanged = false;
-
-                        // Add to activity log
-                        addActivityLog("You saved changes to this payment");
-
-                        // Show success message
-                        showToast("Payment updated successfully");
-
-                        // Redirect after a short delay
-                        setTimeout(function() {
-                            window.location.href = "Index";
-                        }, 1000);
-                    })
-                    .catch(function(err) {
-                        console.error(err);
-                        showToast("Error updating payment: " + err.toString(), "error");
-                        $("#updateButton").prop("disabled", false).html('<i class="bi bi-save"></i> Save Changes');
-                    });
-            });
-
-            // Discarding changes
-            $("#discardChanges").click(function() {
-                formChanged = false;
-                window.location.href = "./Index";
-            });
-
-            // Saving changes from the unsaved changes modal
-            $("#saveChanges").click(function() {
-                $("#updateButton").click();
-            });
-
-            // Start connection
-            connection.start()
-                .then(function() {
-                    console.log("SignalR connected");
-                    $("#collaborationStatus span").addClass("bg-success").removeClass("bg-danger")
-                        .html('<i class="bi bi-wifi"></i> Connected to real-time updates');
-
-                    // Notify other users that we're editing this payment
-                    notifyEditingStarted();
-                })
-                .catch(function(err) {
-                    console.error("SignalR connection error:", err.toString());
-                    $("#collaborationStatus span").addClass("bg-danger").removeClass("bg-success")
-                        .html('<i class="bi bi-wifi-off"></i> Disconnected - collaboration unavailable');
-                    showToast("Collaboration service unavailable", "error");
-                });
-
-            // Handle connection closed
-            connection.onclose(function() {
-                $("#collaborationStatus span").addClass("bg-danger").removeClass("bg-success")
-                    .html('<i class="bi bi-wifi-off"></i> Disconnected - collaboration unavailable');
-
-                addActivityLog("Disconnected from collaboration service");
-            });
-
-            // Handle auto-reconnection
-            connection.onreconnecting(function() {
-                $("#collaborationStatus span").addClass("bg-warning").removeClass("bg-success bg-danger")
-                    .html('<i class="bi bi-wifi-off"></i> Reconnecting...');
-
-                addActivityLog("Connection lost. Attempting to reconnect...");
-            });
-
-            connection.onreconnected(function() {
-                $("#collaborationStatus span").addClass("bg-success").removeClass("bg-warning bg-danger")
-                    .html('<i class="bi bi-wifi"></i> Connected to real-time updates');
-
-                addActivityLog("Reconnected to collaboration service");
-
-                // Re-notify of our presence
-                notifyEditingStarted();
-            });
-
-            // Clean up when leaving the page
-            $(window).on("beforeunload", function() {
-                notifyEditingEnded();
-            });
-        });
-    </script>
 }
