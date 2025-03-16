@@ -1,6 +1,4 @@
-﻿// Modify your IndexModel class in Payments/Index.cshtml.cs to add sorting:
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -43,6 +41,20 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         [BindProperty(SupportsGet = true)]
         public string SortDirection { get; set; } = "desc"; // Default sort direction
 
+        // Pagination properties
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+
+        public int PageSize { get; set; } = 7; // 7 rows per page as requested
+
+        public int TotalItems { get; set; }
+
+        public int TotalPages => (int)Math.Ceiling(TotalItems / (double)PageSize);
+
+        public bool HasPreviousPage => CurrentPage > 1;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+
         public async Task OnGetAsync()
         {
             // Create a SelectList for payment statuses
@@ -50,13 +62,34 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
                 .Cast<PaymentStatus>()
                 .Select(e => new { Id = e.ToString(), Name = e.ToString() }), "Id", "Name");
 
+            // Ensure current page is valid (minimum of 1)
+            CurrentPage = Math.Max(1, CurrentPage);
+
             // Get all payments based on search criteria
-            var payments = await _paymentService.Search(PaymentDate, PaymentStatus, ChildId);
+            var allPayments = await _paymentService.Search(PaymentDate, PaymentStatus, ChildId);
 
             // Apply sorting
-            payments = ApplySorting(payments);
+            allPayments = ApplySorting(allPayments);
 
-            Payments = payments;
+            // Set total items count for pagination
+            TotalItems = allPayments.Count;
+
+            // Apply pagination - take only items for current page
+            Payments = allPayments
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
+            // Ensure current page is within range
+            if (CurrentPage > TotalPages && TotalPages > 0)
+            {
+                CurrentPage = TotalPages;
+                // Recalculate items for the adjusted page
+                Payments = allPayments
+                    .Skip((CurrentPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToList();
+            }
         }
 
         private List<Payment> ApplySorting(List<Payment> payments)
