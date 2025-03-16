@@ -22,7 +22,7 @@
             @Html.DisplayNameFor(model => model.Payment.Amount)
         </dt>
         <dd class="col-sm-9">
-            @((int)Model.Payment.Amount)
+            $@Model.Payment.Amount.ToString("N2")
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentStatus)
@@ -40,7 +40,7 @@
             @Html.DisplayNameFor(model => model.Payment.PaymentDate)
         </dt>
         <dd class="col-sm-9">
-            @Html.DisplayFor(model => model.Payment.PaymentDate)
+            @Model.Payment.PaymentDate.ToString("dd/MM/yyyy")
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.AppointmentId)
@@ -57,13 +57,11 @@
         <input type="hidden" asp-for="PaymentDate" />
         <input type="hidden" asp-for="PaymentStatus" />
         <input type="hidden" asp-for="ChildId" />
-        <input type="hidden" asp-for="CurrentPage" />
 
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-page="./Index"
            asp-route-PaymentDate="@Model.PaymentDate"
            asp-route-PaymentStatus="@Model.PaymentStatus"
-           asp-route-ChildId="@Model.ChildId"
-           asp-route-currentPage="@Model.CurrentPage">Back to List</a>
+           asp-route-ChildId="@Model.ChildId">Back to List</a>
     </form>
 </div>

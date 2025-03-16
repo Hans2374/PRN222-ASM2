@@ -1,4 +1,4 @@
-﻿// First, modify your IndexModel class in Payments/Index.cshtml.cs:
+﻿// Modify your IndexModel class in Payments/Index.cshtml.cs to add sorting:
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +10,7 @@ using PaymentCVSTS.RazorWebApp.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
@@ -18,7 +19,6 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
     {
         private readonly IPaymentService _paymentService;
         private readonly IAppointmentService _appointmentService;
-        private const int PageSize = 7; // Display 7 rows per page
 
         public IndexModel(IPaymentService paymentService, IAppointmentService appointmentService)
         {
@@ -38,9 +38,10 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         public int? ChildId { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
+        public string SortField { get; set; } = "PaymentDate"; // Default sort field
 
-        public int TotalPages { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public string SortDirection { get; set; } = "desc"; // Default sort direction
 
         public async Task OnGetAsync()
         {
@@ -50,22 +51,38 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
                 .Select(e => new { Id = e.ToString(), Name = e.ToString() }), "Id", "Name");
 
             // Get all payments based on search criteria
-            var allPayments = await _paymentService.Search(PaymentDate, PaymentStatus, ChildId);
+            var payments = await _paymentService.Search(PaymentDate, PaymentStatus, ChildId);
 
-            // Calculate pagination values
-            TotalPages = (int)Math.Ceiling(allPayments.Count / (double)PageSize);
+            // Apply sorting
+            payments = ApplySorting(payments);
 
-            // Make sure CurrentPage is within bounds
-            if (CurrentPage < 1)
-                CurrentPage = 1;
-            if (CurrentPage > TotalPages && TotalPages > 0)
-                CurrentPage = TotalPages;
+            Payments = payments;
+        }
 
-            // Apply pagination
-            Payments = allPayments
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
+        private List<Payment> ApplySorting(List<Payment> payments)
+        {
+            // Apply sorting based on the specified field and direction
+            switch (SortField)
+            {
+                case "Amount":
+                    payments = SortDirection == "asc"
+                        ? payments.OrderBy(p => p.Amount).ToList()
+                        : payments.OrderByDescending(p => p.Amount).ToList();
+                    break;
+
+                case "PaymentDate":
+                    payments = SortDirection == "asc"
+                        ? payments.OrderBy(p => p.PaymentDate).ToList()
+                        : payments.OrderByDescending(p => p.PaymentDate).ToList();
+                    break;
+
+                default:
+                    // Default sort by PaymentDate descending
+                    payments = payments.OrderByDescending(p => p.PaymentDate).ToList();
+                    break;
+            }
+
+            return payments;
         }
     }
 }

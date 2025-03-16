@@ -36,9 +36,6 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         [BindProperty(SupportsGet = true)]
         public int? ChildId { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
-
         public async Task<IActionResult> OnGet()
         {
             // Get appointments for dropdown
@@ -75,8 +72,7 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
             {
                 PaymentDate = this.PaymentDate,
                 PaymentStatus = this.PaymentStatus,
-                ChildId = this.ChildId,
-                CurrentPage = this.CurrentPage
+                ChildId = this.ChildId
             });
         }
     }

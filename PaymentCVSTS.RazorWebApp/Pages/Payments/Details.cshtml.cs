@@ -1,4 +1,4 @@
-﻿// First, modify your DetailsModel class in Payments/Details.cshtml.cs:
+﻿// Modify your DetailsModel class in Payments/Details.cshtml.cs:
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +21,7 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
         public Payment Payment { get; set; } = default!;
 
-        // Add these properties to store the filter state
+        // Store the filter state
         [BindProperty(SupportsGet = true)]
         public string? PaymentDate { get; set; }
 
@@ -30,9 +30,6 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
         [BindProperty(SupportsGet = true)]
         public int? ChildId { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
 
         public async Task<IActionResult> OnGetAsync(int id)
         {

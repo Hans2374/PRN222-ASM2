@@ -26,7 +26,7 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         [BindProperty]
         public Payment Payment { get; set; } = default!;
 
-        // Add these properties to store the filter state
+        // Store the filter state
         [BindProperty(SupportsGet = true)]
         public string? PaymentDate { get; set; }
 
@@ -35,9 +35,6 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
         [BindProperty(SupportsGet = true)]
         public int? ChildId { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -67,8 +64,7 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
             {
                 PaymentDate = this.PaymentDate,
                 PaymentStatus = this.PaymentStatus,
-                ChildId = this.ChildId,
-                CurrentPage = this.CurrentPage
+                ChildId = this.ChildId
             });
         }
     }

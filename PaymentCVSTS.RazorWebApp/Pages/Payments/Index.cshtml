@@ -41,10 +41,44 @@
 <table class="table table-striped table-hover">
     <thead>
         <tr>
-            <th>Amount</th>
+            <th>
+                <a asp-page="./Index"
+                   asp-route-sortField="Amount"
+                   asp-route-sortDirection="@(Model.SortField == "Amount" && Model.SortDirection == "asc" ? "desc" : "asc")"
+                   asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
+                   asp-route-PaymentStatus="@Model.PaymentStatus"
+                   asp-route-ChildId="@Model.ChildId">
+                    Amount
+                    @if (Model.SortField == "Amount")
+                    {
+                        <i class="bi @(Model.SortDirection == "asc" ? "bi-sort-down" : "bi-sort-up")"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-sort"></i>
+                    }
+                </a>
+            </th>
             <th>Status</th>
             <th>Method</th>
-            <th>Date</th>
+            <th>
+                <a asp-page="./Index"
+                   asp-route-sortField="PaymentDate"
+                   asp-route-sortDirection="@(Model.SortField == "PaymentDate" && Model.SortDirection == "asc" ? "desc" : "asc")"
+                   asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
+                   asp-route-PaymentStatus="@Model.PaymentStatus"
+                   asp-route-ChildId="@Model.ChildId">
+                    Date
+                    @if (Model.SortField == "PaymentDate")
+                    {
+                        <i class="bi @(Model.SortDirection == "asc" ? "bi-sort-down" : "bi-sort-up")"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-sort"></i>
+                    }
+                </a>
+            </th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -53,7 +87,7 @@
         {
             <tr id="@item.PaymentId">
                 <td>
-                    @((int)item.Amount)
+                    $@item.Amount.ToString("N2")
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.PaymentStatus)
@@ -62,19 +96,17 @@
                     @Html.DisplayFor(modelItem => item.PaymentMethod)
                 </td>
                 <td>
-                    @(item.PaymentDate.ToString("yyyy-MM-dd"))
+                    @item.PaymentDate.ToString("dd/MM/yyyy")
                 </td>
                 <td>
                     <a asp-page="./Details" asp-route-id="@item.PaymentId"
                        asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
                        asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId"
-                       asp-route-currentPage="@Model.CurrentPage">Details</a> |
+                       asp-route-ChildId="@Model.ChildId">Details</a> |
                     <a asp-page="./Edit" asp-route-id="@item.PaymentId"
                        asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
                        asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId"
-                       asp-route-currentPage="@Model.CurrentPage">Edit</a> |
+                       asp-route-ChildId="@Model.ChildId">Edit</a> |
                     <button class="btn btn-danger btn-sm delete-payment" data-id="@item.PaymentId">Delete</button>
                 </td>
             </tr>
@@ -82,91 +114,48 @@
     </tbody>
 </table>
 
-<!-- Pagination -->
-@if (Model.TotalPages > 1)
-{
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            @if (Model.CurrentPage > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link" asp-page="./Index"
-                       asp-route-currentPage="1"
-                       asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
-                       asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId">First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" asp-page="./Index"
-                       asp-route-currentPage="@(Model.CurrentPage - 1)"
-                       asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
-                       asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId">Previous</a>
-                </li>
-            }
-
-            @{
-                int startPage = Math.Max(1, Model.CurrentPage - 2);
-                int endPage = Math.Min(Model.TotalPages, startPage + 4);
-                startPage = Math.Max(1, endPage - 4);
-            }
-
-            @for (var i = startPage; i <= endPage; i++)
-            {
-                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                    <a class="page-link" asp-page="./Index"
-                       asp-route-currentPage="@i"
-                       asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
-                       asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId">@i</a>
-                </li>
-            }
-
-            @if (Model.CurrentPage < Model.TotalPages)
-            {
-                <li class="page-item">
-                    <a class="page-link" asp-page="./Index"
-                       asp-route-currentPage="@(Model.CurrentPage + 1)"
-                       asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
-                       asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId">Next</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" asp-page="./Index"
-                       asp-route-currentPage="@Model.TotalPages"
-                       asp-route-PaymentDate="@Model.PaymentDate?.ToString("yyyy-MM-dd")"
-                       asp-route-PaymentStatus="@Model.PaymentStatus"
-                       asp-route-ChildId="@Model.ChildId">Last</a>
-                </li>
-            }
-        </ul>
-    </nav>
-}
-
 @section Scripts {
     <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
             console.log("Initializing SignalR connection");
-            var connection = new signalR.HubConnectionBuilder().withUrl("/paymentHub").build();
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/paymentHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Function to format date as DD/MM/YYYY
+            function formatDate(dateString) {
+                if (!dateString) return "";
+                const date = new Date(dateString);
+                return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+            }
+
+            // Function to format currency
+            function formatCurrency(amount) {
+                return `${parseFloat(amount).toFixed(2)}`;
+            }
 
             // Receive payment from hub
             connection.on("Receive_Payment", function (payment) {
-                console.log("📩 Received payment data:", payment);
+                console.log("📩 Received new payment data:", payment);
 
+                // Create HTML for new payment row
                 var trPayment = `
                     <tr id="${payment.paymentId}">
-                        <td>${Math.floor(payment.amount)}</td>
+                        <td>${formatCurrency(payment.amount)}</td>
                         <td>${payment.paymentStatus}</td>
                         <td>${payment.paymentMethod}</td>
-                        <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
+                        <td>${formatDate(payment.paymentDate)}</td>
                         <td>
-                            <a href="./Details?id=${payment.paymentId}">Details</a> |
-                            <a href="./Edit?id=${payment.paymentId}">Edit</a> |
+                            <a href="./Details?id=${payment.paymentId}&PaymentDate=@(Model.PaymentDate?.ToString("yyyy-MM-dd"))&PaymentStatus=@Model.PaymentStatus&ChildId=@Model.ChildId">Details</a> |
+                            <a href="./Edit?id=${payment.paymentId}&PaymentDate=@(Model.PaymentDate?.ToString("yyyy-MM-dd"))&PaymentStatus=@Model.PaymentStatus&ChildId=@Model.ChildId">Edit</a> |
                             <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
                         </td>
                     </tr>`;
+
+                // Append the new row to the table
                 $("#idPayment").append(trPayment);
             });
 
@@ -179,13 +168,13 @@
                 if (existingRow.length) {
                     // Replace the row contents with updated data
                     existingRow.html(`
-                        <td>${Math.floor(payment.amount)}</td>
+                        <td>${formatCurrency(payment.amount)}</td>
                         <td>${payment.paymentStatus}</td>
                         <td>${payment.paymentMethod}</td>
-                        <td>${payment.paymentDate ? payment.paymentDate.split('T')[0] : ""}</td>
+                        <td>${formatDate(payment.paymentDate)}</td>
                         <td>
-                            <a href="./Details?id=${payment.paymentId}">Details</a> |
-                            <a href="./Edit?id=${payment.paymentId}">Edit</a> |
+                            <a href="./Details?id=${payment.paymentId}&PaymentDate=@(Model.PaymentDate?.ToString("yyyy-MM-dd"))&PaymentStatus=@Model.PaymentStatus&ChildId=@Model.ChildId">Details</a> |
+                            <a href="./Edit?id=${payment.paymentId}&PaymentDate=@(Model.PaymentDate?.ToString("yyyy-MM-dd"))&PaymentStatus=@Model.PaymentStatus&ChildId=@Model.ChildId">Edit</a> |
                             <button class="btn btn-danger btn-sm delete-payment" data-id="${payment.paymentId}">Delete</button>
                         </td>
                     `);
@@ -199,22 +188,24 @@
             });
 
             // Start connection
-            connection.start().then(function () {
-                console.log("SignalR connected");
+            connection.start()
+                .then(function () {
+                    console.log("✅ SignalR connected successfully");
 
-                // Handle delete button clicks
-                $(document).on("click", ".delete-payment", function() {
-                    var paymentId = $(this).data("id");
-                    if(confirm("Are you sure you want to delete this payment?")) {
-                        connection.invoke("DeletePayment", paymentId)
-                            .catch(function (err) {
-                                console.error(err);
-                            });
-                    }
+                    // Handle delete button clicks
+                    $(document).on("click", ".delete-payment", function() {
+                        var paymentId = $(this).data("id");
+                        if(confirm("Are you sure you want to delete this payment?")) {
+                            connection.invoke("DeletePayment", paymentId)
+                                .catch(function (err) {
+                                    console.error("Error deleting payment:", err);
+                                });
+                        }
+                    });
+                })
+                .catch(function (err) {
+                    console.error("❌ SignalR connection error:", err.toString());
                 });
-            }).catch(function (err) {
-                console.error("SignalR connection error:", err.toString());
-            });
 
             // Initialize the selected status in the dropdown
             $('select[name="PaymentStatus"]').val('@Model.PaymentStatus');

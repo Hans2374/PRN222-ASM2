@@ -18,7 +18,6 @@
             <input type="hidden" asp-for="PaymentDate" />
             <input type="hidden" asp-for="PaymentStatus" />
             <input type="hidden" asp-for="ChildId" />
-            <input type="hidden" asp-for="CurrentPage" />
 
             <div class="form-group">
                 <label asp-for="Payment.Amount" class="control-label"></label>
@@ -57,7 +56,6 @@
                    asp-route-PaymentDate="@Model.PaymentDate"
                    asp-route-PaymentStatus="@Model.PaymentStatus"
                    asp-route-ChildId="@Model.ChildId"
-                   asp-route-currentPage="@Model.CurrentPage"
                    class="btn btn-secondary">Cancel</a>
             </div>
         </form>
@@ -68,12 +66,74 @@
     <a asp-page="Index"
        asp-route-PaymentDate="@Model.PaymentDate"
        asp-route-PaymentStatus="@Model.PaymentStatus"
-       asp-route-ChildId="@Model.ChildId"
-       asp-route-currentPage="@Model.CurrentPage">Back to List</a>
+       asp-route-ChildId="@Model.ChildId">Back to List</a>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/signalrPayments.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize SignalR
+            initializeSignalR().then(() => {
+                console.log("SignalR ready in Create page");
+
+                // Override form submission
+                $("form").submit(function(e) {
+                    e.preventDefault();
+
+                    // Check if the form is valid
+                    if (!$(this).valid()) {
+                        return false;
+                    }
+
+                    // Collect form data
+                    var payment = {
+                        amount: parseFloat($("#Payment_Amount").val()),
+                        paymentStatus: $("#Payment_PaymentStatus").val(),
+                        paymentMethod: $("#Payment_PaymentMethod").val(),
+                        paymentDate: $("#Payment_PaymentDate").val(),
+                        appointmentId: parseInt($("#Payment_AppointmentId").val())
+                    };
+
+                    console.log("Form data collected:", payment);
+
+                    // Send via SignalR
+                    createPaymentViaSignalR(payment)
+                        .then(() => {
+                            // Redirect back to list with filters
+                            var url = "./Index";
+                            var params = [];
+
+                            if ("@Model.PaymentDate" !== "") {
+                                params.push("PaymentDate=@Model.PaymentDate");
+                            }
+
+                            if ("@Model.PaymentStatus" !== "") {
+                                params.push("PaymentStatus=@Model.PaymentStatus");
+                            }
+
+                            if ("@Model.ChildId" !== "") {
+                                params.push("ChildId=@Model.ChildId");
+                            }
+
+                            if (params.length > 0) {
+                                url += "?" + params.join("&");
+                            }
+
+                            window.location.href = url;
+                        })
+                        .catch(err => {
+                            console.error("Error creating payment:", err);
+                            alert("Error creating payment. Please try again.");
+                        });
+
+                    return false;
+                });
+            });
+        });
+    </script>
 }
