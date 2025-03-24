@@ -1,6 +1,4 @@
-﻿// Modify your DetailsModel class in Payments/Details.cshtml.cs:
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PaymentCVSTS.Repositories.Models;
@@ -9,14 +7,16 @@ using System.Threading.Tasks;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize(Roles = "3,2")]
+    [Authorize(Roles = "1")]
     public class DetailsModel : PageModel
     {
         private readonly IPaymentService _paymentService;
+        private readonly ILogger<DetailsModel> _logger;
 
-        public DetailsModel(IPaymentService paymentService)
+        public DetailsModel(IPaymentService paymentService, ILogger<DetailsModel> logger)
         {
             _paymentService = paymentService;
+            _logger = logger;
         }
 
         public Payment Payment { get; set; } = default!;
@@ -29,31 +29,49 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         public string? PaymentStatus { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public int? ChildId { get; set; }
+        public string? PaymentMethod { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var payment = await _paymentService.GetById(id);
-
-            if (payment == null)
+            try
             {
-                return NotFound();
-            }
+                _logger.LogInformation("Fetching payment details for ID: {id}", id);
+                var payment = await _paymentService.GetById(id);
 
-            Payment = payment;
-            return Page();
+                if (payment == null)
+                {
+                    _logger.LogWarning("Payment with ID {id} not found", id);
+                    return NotFound();
+                }
+
+                Payment = payment;
+                return Page();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment details for ID {id}", id);
+                return RedirectToPage("/Error");
+            }
         }
 
         public async Task<IActionResult> OnGetPaymentJsonAsync(int id)
         {
-            var payment = await _paymentService.GetById(id);
-
-            if (payment == null)
+            try
             {
-                return NotFound();
-            }
+                var payment = await _paymentService.GetById(id);
 
-            return new JsonResult(payment);
+                if (payment == null)
+                {
+                    return NotFound();
+                }
+
+                return new JsonResult(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment JSON for ID {id}", id);
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

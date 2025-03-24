@@ -1,20 +1,19 @@
 ﻿@page
+@model PaymentCVSTS.RazorWebApp.Pages.Account.ForbiddenModel
 @{
-	Layout = "_Layout";
+    ViewData["Title"] = "Access Denied";
+    Layout = "_Layout";
 }
 <div class="container">
-	<main role="main" class="pb-3">
-		<div class="row text-center">
-			<h3 class="text-danger">Forbidden</h3>
-			<h4 class="text-danger">You do not have permission to do this function!</h4>
-			<div>
-				<a asp-page="/Account/Login" class="btn btn-primary">Login</a>
-			</div>
-		</div>
-	</main>
+    <main role="main" class="pb-3">
+        <div class="row text-center">
+            <div class="col-md-12">
+                <h3 class="text-danger">Access Denied</h3>
+                <h4 class="text-danger mb-4">You do not have permission to access the payment system.</h4>
+                <div>
+                    <a asp-page="/Account/Login" asp-page-handler="Logout" class="btn btn-primary">Logout</a>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
-@section Scripts {
-	@{
-		await Html.RenderPartialAsync("_ValidationScriptsPartial");
-	}
-}

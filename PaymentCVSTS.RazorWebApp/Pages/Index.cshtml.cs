@@ -1,10 +1,12 @@
+// File: PaymentCVSTS.RazorWebApp/Pages/Index.cshtml.cs
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace PaymentCVSTS.RazorWebApp.Pages
 {
-    [Authorize] // Changed from [Authorize(Roles = "3,2,1")] to allow any authenticated user
+    [Authorize] // Allow any authenticated user
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
@@ -14,9 +16,17 @@ namespace PaymentCVSTS.RazorWebApp.Pages
             _logger = logger;
         }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
-            // You can add any initialization logic here if needed
+            // Only redirect admins to Payments page
+            if (User.IsInRole("1"))
+            {
+                // Admin - redirect to Payments
+                return RedirectToPage("/Payments/Index");
+            }
+
+            // For all other roles, just show home page
+            return Page();
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿// Modify your DeleteModel class in Payments/Delete.cshtml.cs:
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.SignalR;
@@ -11,16 +9,18 @@ using System.Threading.Tasks;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize(Roles = "2")]
+    [Authorize(Roles = "1")]
     public class DeleteModel : PageModel
     {
         private readonly IPaymentService _paymentService;
         private readonly IHubContext<PaymentHub> _hubContext;
+        private readonly ILogger<DeleteModel> _logger;
 
-        public DeleteModel(IPaymentService paymentService, IHubContext<PaymentHub> hubContext)
+        public DeleteModel(IPaymentService paymentService, IHubContext<PaymentHub> hubContext, ILogger<DeleteModel> logger)
         {
             _paymentService = paymentService;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -34,38 +34,59 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         public string? PaymentStatus { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public int? ChildId { get; set; }
+        public string? PaymentMethod { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var payment = await _paymentService.GetById(id);
-
-            if (payment == null)
+            try
             {
-                return NotFound();
-            }
+                _logger.LogInformation("Loading payment with ID {id} for deletion", id);
+                var payment = await _paymentService.GetById(id);
 
-            Payment = payment;
-            return Page();
+                if (payment == null)
+                {
+                    _logger.LogWarning("Payment with ID {id} not found", id);
+                    return NotFound();
+                }
+
+                Payment = payment;
+                return Page();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading payment for deletion with ID {id}", id);
+                return RedirectToPage("/Error");
+            }
         }
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            var success = await _paymentService.Delete(id);
-
-            if (success)
+            try
             {
-                // Notify clients of the deletion via SignalR
-                await _hubContext.Clients.All.SendAsync("Receive_DeletePayment", id);
+                _logger.LogInformation("Deleting payment with ID {id}", id);
+                var success = await _paymentService.Delete(id);
+
+                if (success)
+                {
+                    // Notify clients of the deletion via SignalR
+                    await _hubContext.Clients.All.SendAsync("Receive_DeletePayment", id);
+                    _logger.LogInformation("Payment with ID {id} successfully deleted", id);
+                }
+
+                // Pass along the filter parameters
+                return RedirectToPage("./Index", new
+                {
+                    PaymentDate = this.PaymentDate,
+                    PaymentStatus = this.PaymentStatus,
+                    PaymentMethod = this.PaymentMethod
+                });
             }
-
-            // Pass along the filter parameters
-            return RedirectToPage("./Index", new
+            catch (Exception ex)
             {
-                PaymentDate = this.PaymentDate,
-                PaymentStatus = this.PaymentStatus,
-                ChildId = this.ChildId
-            });
+                _logger.LogError(ex, "Error deleting payment with ID {id}", id);
+                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                return Page();
+            }
         }
     }
 }

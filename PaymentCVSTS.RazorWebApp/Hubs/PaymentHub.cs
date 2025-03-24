@@ -1,6 +1,4 @@
-﻿// First, let's make sure the PaymentHub.cs is properly handling creates
-
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using PaymentCVSTS.Repositories.Models;
 using PaymentCVSTS.Services.Interfaces;
@@ -10,10 +8,12 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
     public class PaymentHub : Hub
     {
         private readonly IPaymentService _paymentService;
+        private readonly ILogger<PaymentHub> _logger;
 
-        public PaymentHub(IPaymentService paymentService)
+        public PaymentHub(IPaymentService paymentService, ILogger<PaymentHub> logger = null)
         {
             _paymentService = paymentService;
+            _logger = logger;
         }
 
         public async Task SendPayment(string paymentJsonString)
@@ -22,7 +22,7 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
             {
                 var payment = JsonConvert.DeserializeObject<Payment>(paymentJsonString);
 
-                Console.WriteLine($"🔄 Sending payment ID {payment.PaymentId} to clients...");
+                _logger?.LogInformation($"🔄 Sending payment for AppointmentID {payment.AppointmentId} to clients...");
 
                 // First save to database
                 await _paymentService.Create(payment);
@@ -30,15 +30,15 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
                 // Then broadcast to all clients 
                 await Clients.All.SendAsync("Receive_Payment", payment);
 
-                Console.WriteLine("✅ Payment sent to clients and saved to database!");
+                _logger?.LogInformation("✅ Payment sent to clients and saved to database!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Error in SendPayment: " + ex.ToString());
+                _logger?.LogError(ex, "❌ Error in SendPayment");
+                throw;
             }
         }
 
-        // Rest of the methods...
         public async Task UpdatePayment(string paymentJsonString)
         {
             try
@@ -46,10 +46,12 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
                 var payment = JsonConvert.DeserializeObject<Payment>(paymentJsonString);
                 await _paymentService.Update(payment);
                 await Clients.All.SendAsync("Receive_UpdatePayment", payment);
+                _logger?.LogInformation($"✅ Payment ID {payment.PaymentId} updated successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Error in UpdatePayment: " + ex.ToString());
+                _logger?.LogError(ex, "❌ Error in UpdatePayment");
+                throw;
             }
         }
 
@@ -61,11 +63,17 @@ namespace PaymentCVSTS.RazorWebApp.Hubs
                 if (success)
                 {
                     await Clients.All.SendAsync("Receive_DeletePayment", id);
+                    _logger?.LogInformation($"✅ Payment ID {id} deleted successfully");
+                }
+                else
+                {
+                    _logger?.LogWarning($"⚠️ Failed to delete payment ID {id}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Error in DeletePayment: " + ex.ToString());
+                _logger?.LogError(ex, "❌ Error in DeletePayment");
+                throw;
             }
         }
     }

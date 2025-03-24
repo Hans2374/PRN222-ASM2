@@ -10,11 +10,9 @@ namespace PaymentCVSTS.Repositories
 
         public async Task<List<Payment>> GetAll()
         {
-            var payments = await _context.Payments
+            return await _context.Payments
                 .Include(p => p.Appointment)
                 .ToListAsync();
-
-            return payments;
         }
 
         public async Task<Payment> GetByIdAsync(int id)
@@ -26,7 +24,7 @@ namespace PaymentCVSTS.Repositories
             return payment;
         }
 
-        public async Task<List<Payment>> Search(DateOnly? date, string? status, int? childId)
+        public async Task<List<Payment>> Search(DateOnly? date, string? status, string? method)
         {
             var query = _context.Payments
                 .Include(p => p.Appointment)
@@ -42,9 +40,9 @@ namespace PaymentCVSTS.Repositories
                 query = query.Where(p => p.PaymentStatus.Contains(status));
             }
 
-            if (childId.HasValue)
+            if (!string.IsNullOrEmpty(method))
             {
-                query = query.Where(p => p.Appointment.ChildId == childId.Value);
+                query = query.Where(p => p.PaymentMethod.Contains(method));
             }
 
             return await query.ToListAsync();

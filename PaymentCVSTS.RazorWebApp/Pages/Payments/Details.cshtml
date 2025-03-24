@@ -51,6 +51,12 @@
         @if (Model.Payment.Appointment != null)
         {
             <dt class="col-sm-3">
+                Service Type
+            </dt>
+            <dd class="col-sm-9">
+                @(Model.Payment.Appointment.ServiceType ?? "N/A")
+            </dd>
+            <dt class="col-sm-3">
                 Appointment Status
             </dt>
             <dd class="col-sm-9">
@@ -75,9 +81,9 @@
     <a asp-page="./Edit" asp-route-id="@Model.Payment.PaymentId"
        asp-route-PaymentDate="@Model.PaymentDate"
        asp-route-PaymentStatus="@Model.PaymentStatus"
-       asp-route-ChildId="@Model.ChildId">Edit</a> |
+       asp-route-PaymentMethod="@Model.PaymentMethod">Edit</a> |
     <a asp-page="./Index"
        asp-route-PaymentDate="@Model.PaymentDate"
        asp-route-PaymentStatus="@Model.PaymentStatus"
-       asp-route-ChildId="@Model.ChildId">Back to List</a>
+       asp-route-PaymentMethod="@Model.PaymentMethod">Back to List</a>
 </div>

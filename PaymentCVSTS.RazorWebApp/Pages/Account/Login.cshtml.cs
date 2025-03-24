@@ -37,31 +37,40 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Account
             {
                 var userAccount = await _userAccountService.Authenticate(UserName, Password);
 
-                if (userAccount != null)
+                if (userAccount == null)
                 {
-                    var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, userAccount.FullName),
-                        new Claim(ClaimTypes.Role, userAccount.RoleId.ToString())
-                    };
-
-                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
-                    Response.Cookies.Append("UserName", userAccount.FullName);
-                    Response.Cookies.Append("Role", userAccount.RoleId.ToString());
-
-                    return RedirectToPage("/Payments/Index");
+                    // Invalid credentials
+                    ModelState.AddModelError("", "Invalid username/password");
+                    return Page();
                 }
+
+                // Create claims and sign in the user regardless of role
+                var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, userAccount.FullName),
+            new Claim(ClaimTypes.Role, userAccount.RoleId.ToString())
+        };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+                Response.Cookies.Append("UserName", userAccount.FullName);
+                Response.Cookies.Append("Role", userAccount.RoleId.ToString());
+
+                // For doctors (role 2), redirect directly to the Forbidden page
+                if (userAccount.RoleId == 2)
+                {
+                    return RedirectToPage("/Account/Forbidden");
+                }
+
+                // For admin (role 3) and other roles, redirect to Payments Index
+                return RedirectToPage("/Payments/Index");
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                ModelState.AddModelError("", $"Login error: {ex.Message}");
+                return Page();
             }
-
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            ModelState.AddModelError("", "Login failure");
-            return Page();
         }
 
         public async Task<IActionResult> OnGetLogout()

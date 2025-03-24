@@ -25,13 +25,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/Forbidden";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Extended session timeout
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     });
 
 // Configure authorization policies to be more permissive
 builder.Services.AddAuthorization(options =>
 {
-    // Default policy only requires authentication, not specific roles
+    // Admin policy - requires role 1
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("1"));
+
+    // Default policy requires authentication
     options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();

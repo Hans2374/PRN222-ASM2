@@ -7,8 +7,15 @@
 	<div class="d-flex justify-content-center align-items-center" style="height: 60vh;">
 		<div class="col-md-4">
 			<h1 class="text-center">Login</h1>
+
+			@if (!ModelState.IsValid)
+			{
+				<div class="alert alert-danger">
+					<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+				</div>
+			}
+
 			<form asp-page="Login" method="post">
-				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 				<div class="form-group">
 					<label asp-for="UserName" class="control-label"></label>
 					<input asp-for="UserName" class="form-control" />

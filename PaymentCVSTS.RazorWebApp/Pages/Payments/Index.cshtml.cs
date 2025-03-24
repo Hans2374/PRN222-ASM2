@@ -12,16 +12,18 @@ using System.Linq;
 
 namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 {
-    [Authorize(Roles = "3,2")]
+    [Authorize(Roles = "1")]
     public class IndexModel : PageModel
     {
         private readonly IPaymentService _paymentService;
         private readonly IAppointmentService _appointmentService;
+        private readonly ILogger<IndexModel> _logger;
 
-        public IndexModel(IPaymentService paymentService, IAppointmentService appointmentService)
+        public IndexModel(IPaymentService paymentService, IAppointmentService appointmentService, ILogger<IndexModel> logger)
         {
             _paymentService = paymentService;
             _appointmentService = appointmentService;
+            _logger = logger;
         }
 
         public IList<Payment> Payments { get; set; } = default!;
@@ -33,7 +35,7 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
         public string? PaymentStatus { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public int? ChildId { get; set; }
+        public string? PaymentMethod { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string SortField { get; set; } = "PaymentDate"; // Default sort field
@@ -57,38 +59,58 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
 
         public async Task OnGetAsync()
         {
-            // Create a SelectList for payment statuses
-            ViewData["PaymentStatus"] = new SelectList(Enum.GetValues(typeof(PaymentStatus))
-                .Cast<PaymentStatus>()
-                .Select(e => new { Id = e.ToString(), Name = e.ToString() }), "Id", "Name");
-
-            // Ensure current page is valid (minimum of 1)
-            CurrentPage = Math.Max(1, CurrentPage);
-
-            // Get all payments based on search criteria
-            var allPayments = await _paymentService.Search(PaymentDate, PaymentStatus, ChildId);
-
-            // Apply sorting
-            allPayments = ApplySorting(allPayments);
-
-            // Set total items count for pagination
-            TotalItems = allPayments.Count;
-
-            // Apply pagination - take only items for current page
-            Payments = allPayments
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
-
-            // Ensure current page is within range
-            if (CurrentPage > TotalPages && TotalPages > 0)
+            try
             {
-                CurrentPage = TotalPages;
-                // Recalculate items for the adjusted page
+                _logger.LogInformation("Loading payments with filters: Date={date}, Status={status}, Method={method}",
+                    PaymentDate, PaymentStatus, PaymentMethod);
+
+                // Create a SelectList for payment statuses
+                ViewData["PaymentStatus"] = new SelectList(Enum.GetValues(typeof(PaymentStatus))
+                    .Cast<PaymentStatus>()
+                    .Select(e => new { Id = e.ToString(), Name = e.ToString() }), "Id", "Name");
+
+                // Create a SelectList for payment methods
+                var paymentMethods = new List<string> { "Credit Card", "Debit Card", "PayPal", "Bank Transfer", "Cash" };
+                ViewData["PaymentMethods"] = new SelectList(
+                    paymentMethods.Select(m => new { Id = m, Name = m }), "Id", "Name");
+
+                // Ensure current page is valid (minimum of 1)
+                CurrentPage = Math.Max(1, CurrentPage);
+
+                // Get all payments based on search criteria
+                var allPayments = await _paymentService.Search(PaymentDate, PaymentStatus, PaymentMethod);
+
+                // Apply sorting
+                allPayments = ApplySorting(allPayments);
+
+                // Set total items count for pagination
+                TotalItems = allPayments.Count;
+
+                // Apply pagination - take only items for current page
                 Payments = allPayments
                     .Skip((CurrentPage - 1) * PageSize)
                     .Take(PageSize)
                     .ToList();
+
+                // Ensure current page is within range
+                if (CurrentPage > TotalPages && TotalPages > 0)
+                {
+                    CurrentPage = TotalPages;
+                    // Recalculate items for the adjusted page
+                    Payments = allPayments
+                        .Skip((CurrentPage - 1) * PageSize)
+                        .Take(PageSize)
+                        .ToList();
+                }
+
+                _logger.LogInformation("Successfully loaded {count} payments (page {page} of {totalPages})",
+                    Payments.Count, CurrentPage, TotalPages);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading payments");
+                ModelState.AddModelError("", "An error occurred while loading payments.");
+                Payments = new List<Payment>();
             }
         }
 

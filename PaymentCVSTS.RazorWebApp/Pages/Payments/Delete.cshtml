@@ -48,6 +48,15 @@
         <dd class="col-sm-9">
             @Html.DisplayFor(model => model.Payment.AppointmentId)
         </dd>
+        @if (Model.Payment.Appointment != null)
+        {
+            <dt class="col-sm-3">
+                Service Type
+            </dt>
+            <dd class="col-sm-9">
+                @(Model.Payment.Appointment.ServiceType ?? "N/A")
+            </dd>
+        }
     </dl>
 
     <form method="post">
@@ -56,12 +65,12 @@
         <!-- Add hidden fields to preserve filter state -->
         <input type="hidden" asp-for="PaymentDate" />
         <input type="hidden" asp-for="PaymentStatus" />
-        <input type="hidden" asp-for="ChildId" />
+        <input type="hidden" asp-for="PaymentMethod" />
 
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-page="./Index"
            asp-route-PaymentDate="@Model.PaymentDate"
            asp-route-PaymentStatus="@Model.PaymentStatus"
-           asp-route-ChildId="@Model.ChildId">Back to List</a>
+           asp-route-PaymentMethod="@Model.PaymentMethod">Back to List</a>
     </form>
 </div>

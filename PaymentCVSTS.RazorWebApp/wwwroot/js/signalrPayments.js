@@ -1,91 +1,60 @@
-﻿// This file should be saved as wwwroot/js/signalrPayments.js
+﻿// Global connection variable
+let connection;
 
-// Global connection object
-let paymentConnection;
+// Initialize SignalR connection
+async function initializeSignalR() {
+    if (connection && connection.state === signalR.HubConnectionState.Connected) {
+        console.log("SignalR connection already established");
+        return connection;
+    }
 
-// Initialize the SignalR connection
-function initializeSignalR() {
-    paymentConnection = new signalR.HubConnectionBuilder()
+    console.log("Initializing SignalR connection");
+    connection = new signalR.HubConnectionBuilder()
         .withUrl("/paymentHub")
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
-    console.log("SignalR connection created");
-
-    // Start the connection
-    return paymentConnection.start()
-        .then(() => {
-            console.log("✅ SignalR connected successfully");
-            return paymentConnection;
-        })
-        .catch(err => {
-            console.error("❌ SignalR connection error:", err.toString());
-            throw err;
-        });
+    try {
+        await connection.start();
+        console.log("✅ SignalR connected successfully");
+        return connection;
+    } catch (err) {
+        console.error("❌ SignalR connection error:", err.toString());
+        throw err;
+    }
 }
 
-// Function to create a payment via SignalR
-function createPaymentViaSignalR(payment) {
+// Create payment via SignalR
+async function createPaymentViaSignalR(payment) {
+    if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+        throw new Error("SignalR connection not established");
+    }
+
     console.log("Creating payment via SignalR:", payment);
-
-    // Make sure we have a connection
-    if (!paymentConnection || paymentConnection.state !== signalR.HubConnectionState.Connected) {
-        console.error("SignalR not connected");
-        return Promise.reject("SignalR not connected");
-    }
-
-    // Convert payment to JSON string and send via SignalR
-    return paymentConnection.invoke("SendPayment", JSON.stringify(payment))
-        .then(() => {
-            console.log("✅ Payment creation request sent via SignalR");
-            return true;
-        })
-        .catch(err => {
-            console.error("❌ Error sending payment via SignalR:", err);
-            throw err;
-        });
+    const paymentJson = JSON.stringify(payment);
+    await connection.invoke("SendPayment", paymentJson);
+    console.log("Payment created successfully");
 }
 
-// Function to update a payment via SignalR
-function updatePaymentViaSignalR(payment) {
+// Update payment via SignalR
+async function updatePaymentViaSignalR(payment) {
+    if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+        throw new Error("SignalR connection not established");
+    }
+
     console.log("Updating payment via SignalR:", payment);
-
-    // Make sure we have a connection
-    if (!paymentConnection || paymentConnection.state !== signalR.HubConnectionState.Connected) {
-        console.error("SignalR not connected");
-        return Promise.reject("SignalR not connected");
-    }
-
-    // Convert payment to JSON string and send via SignalR
-    return paymentConnection.invoke("UpdatePayment", JSON.stringify(payment))
-        .then(() => {
-            console.log("✅ Payment update request sent via SignalR");
-            return true;
-        })
-        .catch(err => {
-            console.error("❌ Error updating payment via SignalR:", err);
-            throw err;
-        });
+    const paymentJson = JSON.stringify(payment);
+    await connection.invoke("UpdatePayment", paymentJson);
+    console.log("Payment updated successfully");
 }
 
-// Function to delete a payment via SignalR
-function deletePaymentViaSignalR(paymentId) {
-    console.log("Deleting payment via SignalR:", paymentId);
-
-    // Make sure we have a connection
-    if (!paymentConnection || paymentConnection.state !== signalR.HubConnectionState.Connected) {
-        console.error("SignalR not connected");
-        return Promise.reject("SignalR not connected");
+// Delete payment via SignalR
+async function deletePaymentViaSignalR(paymentId) {
+    if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+        throw new Error("SignalR connection not established");
     }
 
-    // Send delete request via SignalR
-    return paymentConnection.invoke("DeletePayment", paymentId)
-        .then(() => {
-            console.log("✅ Payment deletion request sent via SignalR");
-            return true;
-        })
-        .catch(err => {
-            console.error("❌ Error deleting payment via SignalR:", err);
-            throw err;
-        });
+    console.log("Deleting payment via SignalR, ID:", paymentId);
+    await connection.invoke("DeletePayment", paymentId);
+    console.log("Payment deleted successfully");
 }
