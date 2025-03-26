@@ -59,18 +59,77 @@
         }
     </dl>
 
-    <form method="post">
-        <input type="hidden" asp-for="Payment.PaymentId" />
+    <form id="deleteForm">
+        <input type="hidden" id="paymentId" value="@Model.Payment.PaymentId" />
 
-        <!-- Add hidden fields to preserve filter state -->
-        <input type="hidden" asp-for="PaymentDate" />
-        <input type="hidden" asp-for="PaymentStatus" />
-        <input type="hidden" asp-for="PaymentMethod" />
-
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index"
-           asp-route-PaymentDate="@Model.PaymentDate"
-           asp-route-PaymentStatus="@Model.PaymentStatus"
-           asp-route-PaymentMethod="@Model.PaymentMethod">Back to List</a>
+        <button type="button" id="deleteButton" class="btn btn-danger">Delete</button> |
+        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Connection variable
+            let connection;
+
+            // Initialize connection
+            async function initConnection() {
+                if (connection) return connection;
+
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/paymentHub")
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                try {
+                    await connection.start();
+                    console.log("Connected to SignalR hub");
+                    return connection;
+                } catch (err) {
+                    console.error("SignalR Connection failed: ", err);
+                    throw err;
+                }
+            }
+
+            // Delete payment function
+            async function deletePayment(paymentId) {
+                const conn = await initConnection();
+                console.log("Sending delete request for payment ID:", paymentId);
+                await conn.invoke("DeletePayment", paymentId);
+            }
+
+            // Initialize connection
+            initConnection();
+
+            // Handle delete button click
+            document.getElementById('deleteButton').addEventListener('click', async function() {
+                // No confirmation dialog - the page itself is the confirmation
+
+                const paymentId = parseInt(document.getElementById('paymentId').value);
+
+                try {
+                    // Disable button and show loading
+                    const deleteButton = document.getElementById('deleteButton');
+                    deleteButton.disabled = true;
+                    deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+
+                    // Delete payment
+                    await deletePayment(paymentId);
+
+                    // Redirect to index
+                    window.location.href = './Index';
+                } catch (error) {
+                    console.error("Error deleting payment:", error);
+                    alert("Error deleting payment. Please try again.");
+
+                    // Re-enable button
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = 'Delete';
+                }
+            });
+        });
+    </script>
+}

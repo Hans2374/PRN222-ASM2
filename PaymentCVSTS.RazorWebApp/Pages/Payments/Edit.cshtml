@@ -3,218 +3,282 @@
 
 @{
     ViewData["Title"] = "Edit Payment";
+
+    // Store values in variables for clarity and format amount specifically
+    var paymentId = Model.Payment.PaymentId;
+
+    // Format amount with invariant culture to ensure proper decimal formatting
+    var amount = Model.Payment.Amount.ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+
+    var status = Model.Payment.PaymentStatus;
+    var method = Model.Payment.PaymentMethod;
+    var date = Model.Payment.PaymentDate.ToString("yyyy-MM-dd");
+    var appointmentId = Model.Payment.AppointmentId;
 }
 
 <h1>Edit Payment</h1>
 
-<h4>Payment ID: @Model.Payment.PaymentId</h4>
+<h4>Payment ID: @paymentId</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <form id="editForm" method="post" novalidate>
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Payment.PaymentId" id="Payment_PaymentId" />
-
-            <!-- Add hidden fields to preserve filter state -->
-            <input type="hidden" asp-for="PaymentDate" />
-            <input type="hidden" asp-for="PaymentStatus" />
-            <input type="hidden" asp-for="PaymentMethod" />
+            <input type="hidden" id="paymentId" value="@paymentId" />
 
             <div class="form-group mb-3">
-                <label asp-for="Payment.Amount" class="control-label">Amount</label>
-                <input asp-for="Payment.Amount" class="form-control" type="number" step="0.01" id="Payment_Amount" />
-                <span asp-validation-for="Payment.Amount" class="text-danger error-message"></span>
-                <span id="amount-error" class="text-danger error-message"></span>
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" class="form-control" value="@amount" step="0.01" />
+                <span class="text-danger" id="amount-error"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Payment.PaymentStatus" class="control-label">Payment Status</label>
-                <select asp-for="Payment.PaymentStatus" class="form-control" asp-items="@ViewData["PaymentStatus"] as SelectList" id="Payment_PaymentStatus">
+                <label for="status">Payment Status</label>
+                <select id="status" name="status" class="form-control">
                     <option value="">-- Select Status --</option>
+                    @if (status == "Pending")
+                    {
+                        <option value="Pending" selected>Pending</option>
+                    }
+                    else
+                    {
+                        <option value="Pending">Pending</option>
+                    }
+
+                    @if (status == "Completed")
+                    {
+                        <option value="Completed" selected>Completed</option>
+                    }
+                    else
+                    {
+                        <option value="Completed">Completed</option>
+                    }
+
+                    @if (status == "Failed")
+                    {
+                        <option value="Failed" selected>Failed</option>
+                    }
+                    else
+                    {
+                        <option value="Failed">Failed</option>
+                    }
                 </select>
-                <span asp-validation-for="Payment.PaymentStatus" class="text-danger error-message"></span>
-                <span id="paymentStatus-error" class="text-danger error-message"></span>
+                <span class="text-danger" id="status-error"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Payment.PaymentMethod" class="control-label">Payment Method</label>
-                <select asp-for="Payment.PaymentMethod" class="form-control" id="Payment_PaymentMethod">
+                <label for="method">Payment Method</label>
+                <select id="method" name="method" class="form-control">
                     <option value="">-- Select Method --</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Debit Card">Debit Card</option>
-                    <option value="PayPal">PayPal</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Cash">Cash</option>
+                    @if (method == "Credit Card")
+                    {
+                        <option value="Credit Card" selected>Credit Card</option>
+                    }
+                    else
+                    {
+                        <option value="Credit Card">Credit Card</option>
+                    }
+
+                    @if (method == "Debit Card")
+                    {
+                        <option value="Debit Card" selected>Debit Card</option>
+                    }
+                    else
+                    {
+                        <option value="Debit Card">Debit Card</option>
+                    }
+
+                    @if (method == "Bank Transfer")
+                    {
+                        <option value="Bank Transfer" selected>Bank Transfer</option>
+                    }
+                    else
+                    {
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    }
+
+                    @if (method == "Cash")
+                    {
+                        <option value="Cash" selected>Cash</option>
+                    }
+                    else
+                    {
+                        <option value="Cash">Cash</option>
+                    }
+
+                    @if (method == "PayPal")
+                    {
+                        <option value="PayPal" selected>PayPal</option>
+                    }
+                    else
+                    {
+                        <option value="PayPal">PayPal</option>
+                    }
                 </select>
-                <span asp-validation-for="Payment.PaymentMethod" class="text-danger error-message"></span>
-                <span id="paymentMethod-error" class="text-danger error-message"></span>
+                <span class="text-danger" id="method-error"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Payment.PaymentDate" class="control-label">Payment Date</label>
-                <input name="Payment.PaymentDate" class="form-control" id="Payment_PaymentDate" type="date"
-                       value="@(Model.Payment.PaymentDate == default(DateOnly) ? "" : Model.Payment.PaymentDate.ToString("yyyy-MM-dd"))" />
-                <span asp-validation-for="Payment.PaymentDate" class="text-danger error-message"></span>
-                <span id="paymentDate-error" class="text-danger error-message"></span>
+                <label for="date">Payment Date</label>
+                <input type="date" id="date" name="date" class="form-control" value="@date" />
+                <span class="text-danger" id="date-error"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Payment.AppointmentId" class="control-label">Service Type</label>
-                <select asp-for="Payment.AppointmentId" class="form-control" asp-items="ViewBag.AppointmentId" id="Payment_AppointmentId">
+                <label for="appointmentId">Service Type</label>
+                <select id="appointmentId" name="appointmentId" class="form-control">
                     <option value="">-- Select Service Type --</option>
+                    @foreach (var item in ViewBag.AppointmentId)
+                    {
+                        if (item.Value == appointmentId.ToString())
+                        {
+                            <option value="@item.Value" selected>@item.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
                 </select>
-                <span asp-validation-for="Payment.AppointmentId" class="text-danger error-message"></span>
-                <span id="appointmentId-error" class="text-danger error-message"></span>
+                <span class="text-danger" id="appointmentId-error"></span>
             </div>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="Save Changes" class="btn btn-primary" />
-                <a asp-page="./Index"
-                   asp-route-PaymentDate="@Model.PaymentDate"
-                   asp-route-PaymentStatus="@Model.PaymentStatus"
-                   asp-route-PaymentMethod="@Model.PaymentMethod"
-                   class="btn btn-secondary">Cancel</a>
+            <div class="form-group mt-4">
+                <button type="button" id="saveButton" class="btn btn-primary">Save Changes</button>
+                <a href="./Index" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
+
+        <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
     <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
-    <script src="~/js/signalrPayments.js"></script>
+
     <script>
-        $(document).ready(function() {
-            // Clear all error messages
-            function clearErrorMessages() {
-                $('.error-message').text('');
-            }
+        // This script explicitly ensures all form fields have proper initial values
+        document.addEventListener('DOMContentLoaded', function() {
+            // Original amount value from model
+            const originalAmount = @Model.Payment.Amount;
+            console.log("Original amount from model:", originalAmount);
 
-            // Client-side validation
-            $('#editForm').submit(function(e) {
-                // Prevent the default form submission to handle validation
-                e.preventDefault();
+            // Format amount string for display
+            const formattedAmount = "@amount";
+            console.log("Formatted amount string:", formattedAmount);
 
+            // Set amount directly with original numeric value
+            document.getElementById('amount').value = originalAmount;
+            console.log("Amount field value after setting:", document.getElementById('amount').value);
+
+            // Display current values to console for debugging all fields
+            console.log("Current payment values:", {
+                paymentId: @paymentId,
+                amount: document.getElementById('amount').value,
+                status: document.getElementById('status').value,
+                method: document.getElementById('method').value,
+                date: document.getElementById('date').value,
+                appointmentId: document.getElementById('appointmentId').value
+            });
+
+            // Create SignalR connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/paymentHub')
+                .build();
+
+            // Start connection
+            connection.start()
+                .then(() => console.log('Connected to SignalR hub'))
+                .catch(err => console.error('Error connecting to SignalR:', err));
+
+            // Handle save button click
+            document.getElementById('saveButton').addEventListener('click', async function() {
                 // Clear previous error messages
-                clearErrorMessages();
+                document.getElementById('amount-error').textContent = '';
+                document.getElementById('status-error').textContent = '';
+                document.getElementById('method-error').textContent = '';
+                document.getElementById('date-error').textContent = '';
+                document.getElementById('appointmentId-error').textContent = '';
+                document.getElementById('errorMessage').style.display = 'none';
 
+                // Validate form
+                if (!validateForm()) {
+                    return;
+                }
+
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+                try {
+                    // Get form values and ensure number values are parsed correctly
+                    const payment = {
+                        paymentId: parseInt(document.getElementById('paymentId').value),
+                        amount: parseFloat(document.getElementById('amount').value),
+                        paymentStatus: document.getElementById('status').value,
+                        paymentMethod: document.getElementById('method').value,
+                        paymentDate: document.getElementById('date').value,
+                        appointmentId: parseInt(document.getElementById('appointmentId').value)
+                    };
+
+                    console.log('Sending payment update:', payment);
+
+                    // Send update via SignalR
+                    await connection.invoke('UpdatePayment', JSON.stringify(payment));
+
+                    // Redirect on success
+                    window.location.href = './Index';
+                } catch (error) {
+                    console.error('Error updating payment:', error);
+
+                    // Show error message
+                    const errorDiv = document.getElementById('errorMessage');
+                    errorDiv.textContent = 'Error updating payment: ' + error.message;
+                    errorDiv.style.display = 'block';
+
+                    // Reset button
+                    this.disabled = false;
+                    this.textContent = 'Save Changes';
+                }
+            });
+
+            // Form validation
+            function validateForm() {
                 let isValid = true;
 
-                // Validate Amount
-                const amount = $('#Payment_Amount').val();
-                if (!amount) {
-                    $('#amount-error').text('Amount is required');
-                    isValid = false;
-                } else if (parseFloat(amount) <= 0) {
-                    $('#amount-error').text('Amount must be greater than zero');
+                // Amount validation
+                const amount = document.getElementById('amount').value;
+                if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+                    document.getElementById('amount-error').textContent = 'Please enter a valid amount greater than 0';
                     isValid = false;
                 }
 
-                // Validate Payment Status
-                const paymentStatus = $('#Payment_PaymentStatus').val();
-                if (!paymentStatus) {
-                    $('#paymentStatus-error').text('Payment Status is required');
+                // Status validation
+                if (!document.getElementById('status').value) {
+                    document.getElementById('status-error').textContent = 'Please select a payment status';
                     isValid = false;
                 }
 
-                // Validate Payment Method
-                const paymentMethod = $('#Payment_PaymentMethod').val();
-                if (!paymentMethod) {
-                    $('#paymentMethod-error').text('Payment Method is required');
+                // Method validation
+                if (!document.getElementById('method').value) {
+                    document.getElementById('method-error').textContent = 'Please select a payment method';
                     isValid = false;
                 }
 
-                // Validate Payment Date
-                const paymentDate = $('#Payment_PaymentDate').val();
-                if (!paymentDate) {
-                    $('#paymentDate-error').text('Payment Date is required');
+                // Date validation
+                if (!document.getElementById('date').value) {
+                    document.getElementById('date-error').textContent = 'Please select a payment date';
                     isValid = false;
                 }
 
-                // Validate Appointment ID
-                const appointmentId = $('#Payment_AppointmentId').val();
-                if (!appointmentId) {
-                    $('#appointmentId-error').text('Appointment is required');
+                // Appointment validation
+                if (!document.getElementById('appointmentId').value) {
+                    document.getElementById('appointmentId-error').textContent = 'Please select a service type';
                     isValid = false;
                 }
 
-                // If using SignalR for form submission and validation passed
-                if (isValid) {
-                    // Initialize SignalR
-                    initializeSignalR().then(() => {
-                        console.log("SignalR ready in Edit page");
-
-                        // Collect form data
-                        var payment = {
-                            paymentId: parseInt($("#Payment_PaymentId").val()),
-                            amount: parseFloat($("#Payment_Amount").val()),
-                            paymentStatus: $("#Payment_PaymentStatus").val(),
-                            paymentMethod: $("#Payment_PaymentMethod").val(),
-                            paymentDate: $("#Payment_PaymentDate").val(),
-                            appointmentId: parseInt($("#Payment_AppointmentId").val())
-                        };
-
-                        console.log("Form data collected:", payment);
-
-                        // Send via SignalR
-                        updatePaymentViaSignalR(payment)
-                            .then(() => {
-                                // Redirect back to list with filters
-                                var url = "./Index";
-                                var params = [];
-
-                                if ("@Model.PaymentDate" !== "") {
-                                    params.push("PaymentDate=@Model.PaymentDate");
-                                }
-
-                                if ("@Model.PaymentStatus" !== "") {
-                                    params.push("PaymentStatus=@Model.PaymentStatus");
-                                }
-
-                                if ("@Model.PaymentMethod" !== "") {
-                                    params.push("PaymentMethod=@Model.PaymentMethod");
-                                }
-
-                                if (params.length > 0) {
-                                    url += "?" + params.join("&");
-                                }
-
-                                window.location.href = url;
-                            })
-                            .catch(err => {
-                                console.error("Error updating payment:", err);
-                                alert("Error updating payment. Please try again.");
-                            });
-                    });
-                }
-
-                return false; // Prevent form from submitting normally
-            });
-
-            // Clear error message when the field value changes
-            $('.form-control').on('input change', function() {
-                const fieldId = $(this).attr('id');
-
-                switch(fieldId) {
-                    case 'Payment_Amount':
-                        $('#amount-error').text('');
-                        break;
-                    case 'Payment_PaymentStatus':
-                        $('#paymentStatus-error').text('');
-                        break;
-                    case 'Payment_PaymentMethod':
-                        $('#paymentMethod-error').text('');
-                        break;
-                    case 'Payment_PaymentDate':
-                        $('#paymentDate-error').text('');
-                        break;
-                    case 'Payment_AppointmentId':
-                        $('#appointmentId-error').text('');
-                        break;
-                }
-            });
+                return isValid;
+            }
         });
     </script>
 }
