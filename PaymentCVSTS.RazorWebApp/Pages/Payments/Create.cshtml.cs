@@ -48,9 +48,6 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
                 // Initialize a new payment object
                 Payment = new Payment();
 
-                // Explicitly set PaymentDate to null to prevent default date (01/01/0001)
-                ModelState.SetModelValue("Payment.PaymentDate", null, null);
-
                 // Load data for dropdowns
                 await LoadDropdownsAsync();
 
@@ -91,11 +88,16 @@ namespace PaymentCVSTS.RazorWebApp.Pages.Payments
                     validationErrors.Add("Payment Method is required");
                 }
 
+                if (Payment.PaymentDate == null)
+                {
+                    ModelState.AddModelError("Payment.PaymentDate", "Payment Date is required");
+                }
+
                 // Appointment ID must be selected
                 if (Payment.AppointmentId <= 0)
                 {
-                    ModelState.AddModelError("Payment.AppointmentId", "Appointment is required");
-                    validationErrors.Add("Appointment is required");
+                    ModelState.AddModelError("Payment.AppointmentId", "Service Type is required");
+                    validationErrors.Add("Service Type is required");
                 }
 
                 if (!ModelState.IsValid)
