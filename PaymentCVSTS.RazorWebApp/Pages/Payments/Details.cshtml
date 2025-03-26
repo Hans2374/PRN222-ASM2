@@ -7,44 +7,44 @@
 
 <h1>Payment Details</h1>
 
-<div>
+<div id="payment-details-container">
     <h4>Payment</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentId)
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="payment-id">
             @Html.DisplayFor(model => model.Payment.PaymentId)
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.Amount)
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="payment-amount">
             $@Model.Payment.Amount.ToString("N2")
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentStatus)
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="payment-status">
             @Html.DisplayFor(model => model.Payment.PaymentStatus)
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentMethod)
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="payment-method">
             @Html.DisplayFor(model => model.Payment.PaymentMethod)
         </dd>
         <dt class="col-sm-3">
             @Html.DisplayNameFor(model => model.Payment.PaymentDate)
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="payment-date">
             @Model.Payment.PaymentDate.ToString("dd/MM/yyyy")
         </dd>
         <dt class="col-sm-3">
             Appointment ID
         </dt>
-        <dd class="col-sm-9">
+        <dd class="col-sm-9" id="appointment-id">
             @Html.DisplayFor(model => model.Payment.AppointmentId)
         </dd>
 
@@ -53,30 +53,41 @@
             <dt class="col-sm-3">
                 Service Type
             </dt>
-            <dd class="col-sm-9">
+            <dd class="col-sm-9" id="service-type">
                 @(Model.Payment.Appointment.ServiceType ?? "N/A")
             </dd>
             <dt class="col-sm-3">
                 Appointment Status
             </dt>
-            <dd class="col-sm-9">
+            <dd class="col-sm-9" id="appointment-status">
                 @Html.DisplayFor(model => model.Payment.Appointment.Status)
             </dd>
             <dt class="col-sm-3">
                 Total Cost
             </dt>
-            <dd class="col-sm-9">
+            <dd class="col-sm-9" id="total-cost">
                 @((int)Model.Payment.Appointment.TotalCost)
             </dd>
             <dt class="col-sm-3">
                 Booking Date
             </dt>
-            <dd class="col-sm-9">
+            <dd class="col-sm-9" id="booking-date">
                 @Html.DisplayFor(model => model.Payment.Appointment.BookingDate)
             </dd>
         }
     </dl>
+
+    <!-- Real-time update notification -->
+    <div id="update-notification" class="alert alert-info mt-3" style="display: none;">
+        <i class="bi bi-info-circle"></i> This payment has been updated. <span id="update-message"></span>
+    </div>
+
+    <!-- Deleted notification -->
+    <div id="deleted-notification" class="alert alert-warning mt-3" style="display: none;">
+        <i class="bi bi-exclamation-triangle"></i> This payment has been deleted. You will be redirected to the payment list.
+    </div>
 </div>
+
 <div>
     <a asp-page="./Edit" asp-route-id="@Model.Payment.PaymentId"
        asp-route-PaymentDate="@Model.PaymentDate"
@@ -87,3 +98,101 @@
        asp-route-PaymentStatus="@Model.PaymentStatus"
        asp-route-PaymentMethod="@Model.PaymentMethod">Back to List</a>
 </div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Current payment ID being viewed
+            const currentPaymentId = parseInt('@Model.Payment.PaymentId');
+            console.log("Viewing payment ID:", currentPaymentId);
+
+            // Helper functions for formatting
+            function formatCurrency(amount) {
+                return "$" + parseFloat(amount).toFixed(2);
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return "";
+
+                // If it's already in dd/MM/yyyy format, return as is
+                if (typeof dateString === 'string' && dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    return dateString;
+                }
+
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+
+                return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+            }
+
+            // Create SignalR connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/paymentHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Handle updates to the current payment
+            connection.on("Receive_UpdatePayment", function(payment) {
+                console.log("Payment update received:", payment);
+
+                // Check if this is the payment we're currently viewing
+                if (payment.paymentId === currentPaymentId) {
+                    console.log("Updating displayed payment details");
+
+                    // Update the payment details in the UI
+                    document.getElementById('payment-amount').textContent = formatCurrency(payment.amount);
+                    document.getElementById('payment-status').textContent = payment.paymentStatus;
+                    document.getElementById('payment-method').textContent = payment.paymentMethod;
+                    document.getElementById('payment-date').textContent = formatDate(payment.paymentDate);
+
+                    if (payment.appointment) {
+                        document.getElementById('service-type').textContent = payment.appointment.serviceType || "N/A";
+                    }
+
+                    // Show update notification with a message
+                    const updateMsg = document.getElementById('update-message');
+                    updateMsg.textContent = `Updated at ${new Date().toLocaleTimeString()}`;
+
+                    const notification = document.getElementById('update-notification');
+                    notification.style.display = 'block';
+
+                    // Fade out the notification after 5 seconds
+                    setTimeout(() => {
+                        notification.style.transition = 'opacity 1s';
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            notification.style.display = 'none';
+                            notification.style.opacity = '1';
+                        }, 1000);
+                    }, 5000);
+                }
+            });
+
+            // Handle deletion of the current payment
+            connection.on("Receive_DeletePayment", function(paymentId) {
+                console.log("Delete notification received for payment ID:", paymentId);
+
+                // Check if this is the payment we're currently viewing
+                if (paymentId === currentPaymentId) {
+                    console.log("Current payment has been deleted");
+
+                    // Show deletion notification
+                    const deletedNotification = document.getElementById('deleted-notification');
+                    deletedNotification.style.display = 'block';
+
+                    // After 3 seconds, redirect to index page
+                    setTimeout(() => {
+                        window.location.href = './Index';
+                    }, 3000);
+                }
+            });
+
+            // Start connection
+            connection.start()
+                .then(() => console.log("Connected to SignalR hub"))
+                .catch(err => console.error("SignalR Connection Error:", err));
+        });
+    </script>
+}
